@@ -22,12 +22,12 @@
 
 | Role | Name | Enrollment No. | GitHub Username |
 |------|------|----------------|-----------------|
-| Group Lead | | | |
-| Member 2 | | | |
-| Member 3 | | | |
-| Member 4 | | | |
+| Group Lead | Mudit Jindal| 2501010284| Mudit-Jindal07|
+| Member 2 | Satyam| 2501010411| satyam6231631-hue|
+| Member 3 | Shirsh| 2501010425| shirsh-hub|
+| Member 4 | Nilesh Saini| 2501010305| Nilesh2007|
 
-**Team No.:** ____ · **Section:** ____ · **Repository URL:** ____
+**Team No.:** (not assigned yet) · **Section:** B/E · **Repository URL:** https://github.com/satyam6231631-hue/DE_Project_2026
 
 ---
 

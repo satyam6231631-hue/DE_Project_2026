@@ -1,0 +1,27 @@
+{
+  "team_number": "",
+  "group_lead": {
+    "name": "Mudit Jindal",
+    "enrollment_no": "2501010284",
+    "github": "Mudit-Jindal07"
+  },
+  "members": [
+    {
+      "name": "Satyam",
+      "enrollment_no": "2501010411",
+      "github": "satyam6231631-hue"
+    },
+    {
+      "name": "Shirsh",
+      "enrollment_no": "2501010425",
+      "github": "shirsh-hub"
+    },
+    {
+      "name": "Nilesh Saini",
+      "enrollment_no": "2501010305",
+      "github": "Nilesh2007"
+    }
+  ],
+  "postgres_version": "18.6 (Homebrew)",
+  "laptop_used_for_benchmarks": "mackbook pro m4"
+}
