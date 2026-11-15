@@ -75,7 +75,7 @@ CREATE TABLE lessons (
     xp_value    INT NOT NULL,
     CONSTRAINT chk_lessons_lesson_no_positive CHECK (lesson_no > 0),
     CONSTRAINT chk_lessons_lesson_type CHECK (lesson_type IN ('LEARN', 'PRACTICE', 'STORY', 'LEGENDARY')),
-    CONSTRAINT chk_lessons_xp_value_positive CHECK (xp_value > 0),
+    CONSTRAINT chk_lessons_xp_value_non_negative CHECK (xp_value >= 0),
     CONSTRAINT uq_lessons_unit_lesson_no UNIQUE (unit_id, lesson_no)
 );
 
@@ -103,7 +103,7 @@ CREATE TABLE learners (
 -- ---------------------------------------------------------------------
 CREATE TABLE enrollments (
     learner_id  INT NOT NULL REFERENCES learners(learner_id) ON DELETE CASCADE,
-    course_id   INT NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
+    course_id   INT NOT NULL REFERENCES courses(course_id) ON DELETE RESTRICT,
     enrolled_at TIMESTAMPTZ NOT NULL,
     total_xp    INT NOT NULL DEFAULT 0,
     is_active   BOOLEAN NOT NULL DEFAULT true,
@@ -189,7 +189,7 @@ CREATE TABLE achievements (
 -- ---------------------------------------------------------------------
 CREATE TABLE learner_achievements (
     learner_id     INT NOT NULL REFERENCES learners(learner_id) ON DELETE CASCADE,
-    achievement_id INT NOT NULL REFERENCES achievements(achievement_id) ON DELETE CASCADE,
+    achievement_id INT NOT NULL REFERENCES achievements(achievement_id) ON DELETE RESTRICT,
     earned_at      TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (learner_id, achievement_id)
 );
