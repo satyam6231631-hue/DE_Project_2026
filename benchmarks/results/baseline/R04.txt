@@ -1,0 +1,78 @@
+=== R04 run 1 ===
+GroupAggregate  (cost=4938.81..4938.83 rows=1 width=12) (actual time=4.566..5.400 rows=1.00 loops=1)
+  Group Key: l.daily_goal_xp
+  Buffers: shared hit=1998
+  ->  Sort  (cost=4938.81..4938.81 rows=1 width=8) (actual time=4.560..5.395 rows=1.00 loops=1)
+        Sort Key: l.daily_goal_xp
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=1998
+        ->  Nested Loop Left Join  (cost=1000.29..4938.80 rows=1 width=8) (actual time=4.344..5.384 rows=1.00 loops=1)
+              Buffers: shared hit=1995
+              ->  Index Scan using learners_pkey on learners l  (cost=0.29..8.30 rows=1 width=8) (actual time=0.008..0.008 rows=1.00 loops=1)
+                    Index Cond: (learner_id = 1042)
+                    Index Searches: 1
+                    Buffers: shared hit=3
+              ->  Gather  (cost=1000.00..4930.48 rows=1 width=8) (actual time=4.335..5.374 rows=1.00 loops=1)
+                    Workers Planned: 1
+                    Workers Launched: 1
+                    Buffers: shared hit=1992
+                    ->  Parallel Seq Scan on lesson_attempts a  (cost=0.00..3930.38 rows=1 width=8) (actual time=3.257..3.340 rows=0.50 loops=2)
+                          Filter: ((learner_id = 1042) AND (date(started_at) = '2026-06-30'::date))
+                          Rows Removed by Filter: 94150
+                          Buffers: shared hit=1992
+Planning:
+  Buffers: shared hit=167
+Planning Time: 0.398 ms
+Execution Time: 5.434 ms
+=== R04 run 2 ===
+GroupAggregate  (cost=4938.81..4938.83 rows=1 width=12) (actual time=4.787..5.389 rows=1.00 loops=1)
+  Group Key: l.daily_goal_xp
+  Buffers: shared hit=1998
+  ->  Sort  (cost=4938.81..4938.81 rows=1 width=8) (actual time=4.783..5.385 rows=1.00 loops=1)
+        Sort Key: l.daily_goal_xp
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=1998
+        ->  Nested Loop Left Join  (cost=1000.29..4938.80 rows=1 width=8) (actual time=4.622..5.376 rows=1.00 loops=1)
+              Buffers: shared hit=1995
+              ->  Index Scan using learners_pkey on learners l  (cost=0.29..8.30 rows=1 width=8) (actual time=0.006..0.007 rows=1.00 loops=1)
+                    Index Cond: (learner_id = 1042)
+                    Index Searches: 1
+                    Buffers: shared hit=3
+              ->  Gather  (cost=1000.00..4930.48 rows=1 width=8) (actual time=4.614..5.368 rows=1.00 loops=1)
+                    Workers Planned: 1
+                    Workers Launched: 1
+                    Buffers: shared hit=1992
+                    ->  Parallel Seq Scan on lesson_attempts a  (cost=0.00..3930.38 rows=1 width=8) (actual time=3.446..3.507 rows=0.50 loops=2)
+                          Filter: ((learner_id = 1042) AND (date(started_at) = '2026-06-30'::date))
+                          Rows Removed by Filter: 94150
+                          Buffers: shared hit=1992
+Planning:
+  Buffers: shared hit=167
+Planning Time: 0.312 ms
+Execution Time: 5.421 ms
+=== R04 run 3 ===
+GroupAggregate  (cost=4938.81..4938.83 rows=1 width=12) (actual time=4.347..5.068 rows=1.00 loops=1)
+  Group Key: l.daily_goal_xp
+  Buffers: shared hit=1998
+  ->  Sort  (cost=4938.81..4938.81 rows=1 width=8) (actual time=4.342..5.063 rows=1.00 loops=1)
+        Sort Key: l.daily_goal_xp
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=1998
+        ->  Nested Loop Left Join  (cost=1000.29..4938.80 rows=1 width=8) (actual time=4.166..5.056 rows=1.00 loops=1)
+              Buffers: shared hit=1995
+              ->  Index Scan using learners_pkey on learners l  (cost=0.29..8.30 rows=1 width=8) (actual time=0.005..0.005 rows=1.00 loops=1)
+                    Index Cond: (learner_id = 1042)
+                    Index Searches: 1
+                    Buffers: shared hit=3
+              ->  Gather  (cost=1000.00..4930.48 rows=1 width=8) (actual time=4.160..5.049 rows=1.00 loops=1)
+                    Workers Planned: 1
+                    Workers Launched: 1
+                    Buffers: shared hit=1992
+                    ->  Parallel Seq Scan on lesson_attempts a  (cost=0.00..3930.38 rows=1 width=8) (actual time=3.159..3.229 rows=0.50 loops=2)
+                          Filter: ((learner_id = 1042) AND (date(started_at) = '2026-06-30'::date))
+                          Rows Removed by Filter: 94150
+                          Buffers: shared hit=1992
+Planning:
+  Buffers: shared hit=167
+Planning Time: 0.293 ms
+Execution Time: 5.091 ms
