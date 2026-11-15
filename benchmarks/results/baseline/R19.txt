@@ -1,0 +1,102 @@
+=== R19 run 1 ===
+Incremental Sort  (cost=106986.67..1390823.90 rows=160 width=52) (actual time=296.352..1436.159 rows=160.00 loops=1)
+  Sort Key: u.unit_no, l.lesson_no
+  Presorted Key: u.unit_no
+  Full-sort Groups: 5  Sort Method: quicksort  Average Memory: 26kB  Peak Memory: 26kB
+  Buffers: shared hit=637506
+  ->  Nested Loop  (cost=0.42..1390818.74 rows=160 width=52) (actual time=9.665..1436.068 rows=160.00 loops=1)
+        Buffers: shared hit=637503
+        ->  Index Scan using uq_units_course_unit_no on units u  (cost=0.14..10.24 rows=20 width=8) (actual time=0.003..0.011 rows=20.00 loops=1)
+              Index Cond: (course_id = 1)
+              Index Searches: 1
+              Buffers: shared hit=2
+        ->  Index Scan using uq_lessons_unit_lesson_no on lessons l  (cost=0.28..4.11 rows=8 width=12) (actual time=0.003..0.005 rows=8.00 loops=20)
+              Index Cond: (unit_id = u.unit_id)
+              Index Searches: 20
+              Buffers: shared hit=61
+        SubPlan 1
+          ->  Aggregate  (cost=4345.99..4346.00 rows=1 width=8) (actual time=5.001..5.001 rows=1.00 loops=160)
+                Buffers: shared hit=318720
+                ->  Seq Scan on lesson_attempts a  (cost=0.00..4345.75 rows=95 width=0) (actual time=0.024..4.993 rows=264.04 loops=160)
+                      Filter: ((completed_at IS NOT NULL) AND (lesson_id = l.lesson_id))
+                      Rows Removed by Filter: 188036
+                      Buffers: shared hit=318720
+        SubPlan 2
+          ->  Aggregate  (cost=4346.02..4346.03 rows=1 width=32) (actual time=3.973..3.973 rows=1.00 loops=160)
+                Buffers: shared hit=318720
+                ->  Seq Scan on lesson_attempts a_1  (cost=0.00..4345.75 rows=107 width=4) (actual time=0.017..3.961 rows=298.36 loops=160)
+                      Filter: (lesson_id = l.lesson_id)
+                      Rows Removed by Filter: 188002
+                      Buffers: shared hit=318720
+Planning:
+  Buffers: shared hit=200
+Planning Time: 0.436 ms
+Execution Time: 1436.567 ms
+=== R19 run 2 ===
+Incremental Sort  (cost=106986.67..1390823.90 rows=160 width=52) (actual time=298.712..1443.330 rows=160.00 loops=1)
+  Sort Key: u.unit_no, l.lesson_no
+  Presorted Key: u.unit_no
+  Full-sort Groups: 5  Sort Method: quicksort  Average Memory: 26kB  Peak Memory: 26kB
+  Buffers: shared hit=637506
+  ->  Nested Loop  (cost=0.42..1390818.74 rows=160 width=52) (actual time=9.744..1443.248 rows=160.00 loops=1)
+        Buffers: shared hit=637503
+        ->  Index Scan using uq_units_course_unit_no on units u  (cost=0.14..10.24 rows=20 width=8) (actual time=0.002..0.012 rows=20.00 loops=1)
+              Index Cond: (course_id = 1)
+              Index Searches: 1
+              Buffers: shared hit=2
+        ->  Index Scan using uq_lessons_unit_lesson_no on lessons l  (cost=0.28..4.11 rows=8 width=12) (actual time=0.002..0.004 rows=8.00 loops=20)
+              Index Cond: (unit_id = u.unit_id)
+              Index Searches: 20
+              Buffers: shared hit=61
+        SubPlan 1
+          ->  Aggregate  (cost=4345.99..4346.00 rows=1 width=8) (actual time=5.034..5.034 rows=1.00 loops=160)
+                Buffers: shared hit=318720
+                ->  Seq Scan on lesson_attempts a  (cost=0.00..4345.75 rows=95 width=0) (actual time=0.024..5.026 rows=264.04 loops=160)
+                      Filter: ((completed_at IS NOT NULL) AND (lesson_id = l.lesson_id))
+                      Rows Removed by Filter: 188036
+                      Buffers: shared hit=318720
+        SubPlan 2
+          ->  Aggregate  (cost=4346.02..4346.03 rows=1 width=32) (actual time=3.985..3.985 rows=1.00 loops=160)
+                Buffers: shared hit=318720
+                ->  Seq Scan on lesson_attempts a_1  (cost=0.00..4345.75 rows=107 width=4) (actual time=0.017..3.974 rows=298.36 loops=160)
+                      Filter: (lesson_id = l.lesson_id)
+                      Rows Removed by Filter: 188002
+                      Buffers: shared hit=318720
+Planning:
+  Buffers: shared hit=200
+Planning Time: 0.417 ms
+Execution Time: 1443.374 ms
+=== R19 run 3 ===
+Incremental Sort  (cost=106986.67..1390823.90 rows=160 width=52) (actual time=293.984..1433.741 rows=160.00 loops=1)
+  Sort Key: u.unit_no, l.lesson_no
+  Presorted Key: u.unit_no
+  Full-sort Groups: 5  Sort Method: quicksort  Average Memory: 26kB  Peak Memory: 26kB
+  Buffers: shared hit=637506
+  ->  Nested Loop  (cost=0.42..1390818.74 rows=160 width=52) (actual time=9.643..1433.668 rows=160.00 loops=1)
+        Buffers: shared hit=637503
+        ->  Index Scan using uq_units_course_unit_no on units u  (cost=0.14..10.24 rows=20 width=8) (actual time=0.002..0.006 rows=20.00 loops=1)
+              Index Cond: (course_id = 1)
+              Index Searches: 1
+              Buffers: shared hit=2
+        ->  Index Scan using uq_lessons_unit_lesson_no on lessons l  (cost=0.28..4.11 rows=8 width=12) (actual time=0.001..0.003 rows=8.00 loops=20)
+              Index Cond: (unit_id = u.unit_id)
+              Index Searches: 20
+              Buffers: shared hit=61
+        SubPlan 1
+          ->  Aggregate  (cost=4345.99..4346.00 rows=1 width=8) (actual time=4.996..4.996 rows=1.00 loops=160)
+                Buffers: shared hit=318720
+                ->  Seq Scan on lesson_attempts a  (cost=0.00..4345.75 rows=95 width=0) (actual time=0.024..4.989 rows=264.04 loops=160)
+                      Filter: ((completed_at IS NOT NULL) AND (lesson_id = l.lesson_id))
+                      Rows Removed by Filter: 188036
+                      Buffers: shared hit=318720
+        SubPlan 2
+          ->  Aggregate  (cost=4346.02..4346.03 rows=1 width=32) (actual time=3.963..3.963 rows=1.00 loops=160)
+                Buffers: shared hit=318720
+                ->  Seq Scan on lesson_attempts a_1  (cost=0.00..4345.75 rows=107 width=4) (actual time=0.017..3.953 rows=298.36 loops=160)
+                      Filter: (lesson_id = l.lesson_id)
+                      Rows Removed by Filter: 188002
+                      Buffers: shared hit=318720
+Planning:
+  Buffers: shared hit=200
+Planning Time: 0.462 ms
+Execution Time: 1433.791 ms
