@@ -427,33 +427,35 @@ Tables are loaded in dependency order (parents before children):
 
 ## 9. Integrity Check Results
 
-*To be filled in after `sql/02_load_data.sql` runs successfully.*
+Executed on PostgreSQL 18.6 via `sql/02_load_data.sql`.
 
 ### 9.1 Row Count Verification
 
 | Table | Expected | Actual | Match? |
-|---|---:|---:|---|
-| `languages` | 10 | — | — |
-| `courses` | 11 | — | — |
-| `units` | 220 | — | — |
-| `lessons` | 1,760 | — | — |
-| `learners` | 30,000 | — | — |
-| `enrollments` | 37,500 | — | — |
-| `lesson_attempts` | 188,300 | — | — |
-| `daily_activity` | 189,109 | — | — |
-| `league_memberships` | 28,598 | — | — |
-| `achievements` | 10 | — | — |
-| `learner_achievements` | 38,860 | — | — |
+|---|---:|---:|:---:|
+| `languages` | 10 | 10 | ✅ |
+| `courses` | 11 | 11 | ✅ |
+| `units` | 220 | 220 | ✅ |
+| `lessons` | 1,760 | 1,760 | ✅ |
+| `learners` | 30,000 | 30,000 | ✅ |
+| `enrollments` | 37,500 | 37,500 | ✅ |
+| `lesson_attempts` | 188,300 | 188,300 | ✅ |
+| `daily_activity` | 189,109 | 189,109 | ✅ |
+| `league_memberships` | 28,598 | 28,598 | ✅ |
+| `achievements` | 10 | 10 | ✅ |
+| `learner_achievements` | 38,860 | 38,860 | ✅ |
 
-### 9.2 Business Rule Checks
+### 9.2 Business Rule & Integrity Checks
 
-| Check | Query Result | Pass? |
-|---|---|---|
-| Learners only attempt lessons in courses they're enrolled in | — bad attempts | — |
-| League cohort size ≤ 30 per week | — cohorts > 30 | — |
-| `completed_at >= started_at` for all completed attempts | — violations | — |
-| Perfect attempts have `mistakes = 0` | — violations | — |
-| Quit attempts (`completed_at IS NULL`) have `xp_earned = 0` | — violations | — |
+| Check | Query Result | Status |
+|---|---|:---:|
+| **Check 1: League cohort size** (No cohort exceeds 30 members) | `0 rows` (max cohort size ≤ 30) | ✅ PASS |
+| **Check 2: Valid enrollments** (Learners only attempt lessons in courses they are enrolled in) | `0` attempts without enrollment | ✅ PASS |
+| **Check 3: XP integrity** (Daily activity XP equals sum of attempt `xp_earned` per date) | `0` daily XP mismatches | ✅ PASS |
+| **Check 4: Referral integrity** (No orphan referrals; all point to existing learners) | `0` invalid referrals | ✅ PASS |
+| **Check 5: Perfect attempt validity** (Perfect lessons have `mistakes = 0`, `completed_at` NOT NULL, `xp > 0`) | `0` inconsistent perfect attempts | ✅ PASS |
+| **Check 6: Temporal consistency** (`completed_at >= started_at` for all completed attempts) | `0` time ordering violations | ✅ PASS |
+| **Check 7: Abandoned attempt XP** (Quit attempts with `completed_at IS NULL` have `xp_earned = 0`) | `0` violations | ✅ PASS |
 
 ---
 
