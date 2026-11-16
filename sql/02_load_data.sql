@@ -10,6 +10,7 @@
 -- =====================================================================
 
 SET search_path TO duolingo;
+SET timezone = 'Asia/Kolkata';
 
 -- ---------------------------------------------------------------------
 -- 1. Load Data in FK-Safe Parent -> Child Order
