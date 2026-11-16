@@ -31,10 +31,10 @@ All tables are created inside the schema `duolingo` (`CREATE SCHEMA duolingo; SE
 
 | Column | Type | Constraints | Why |
 |---|---|---|---|
-| `language_code` | `CHAR(2)` | **PK** | Fixed-length ISO 639-1 code (e.g. `en`, `es`) |
-| `language_name` | `VARCHAR(50)` | NOT NULL, UNIQUE | Human-readable; unique across the table |
+| `language_code` | `VARCHAR(5)` | **PK** | Fixed/short ISO 639-1 code (e.g. `en`, `es`) |
+| `language_name` | `VARCHAR(50)` | NOT NULL, UNIQUE | Human-readable; unique across the catalog |
 
-**Indexes auto-created:** PK on `language_code`.
+**Indexes auto-created:** PK on `language_code`; UNIQUE on `language_name`.
 
 ---
 
@@ -42,13 +42,13 @@ All tables are created inside the schema `duolingo` (`CREATE SCHEMA duolingo; SE
 
 | Column | Type | Constraints | Why |
 |---|---|---|---|
-| `course_id` | `SMALLINT` | **PK** | Only 11 courses; SMALLINT sufficient |
-| `from_lang` | `CHAR(2)` | NOT NULL, FK → `languages(language_code)` ON DELETE RESTRICT | Native language of learner |
-| `learning_lang` | `CHAR(2)` | NOT NULL, FK → `languages(language_code)` ON DELETE RESTRICT | Language being learnt |
+| `course_id` | `INT` | **PK** | Surrogate identifier for language course |
+| `from_lang` | `VARCHAR(5)` | NOT NULL, FK → `languages(language_code)` ON DELETE RESTRICT | Native language of learner |
+| `learning_lang` | `VARCHAR(5)` | NOT NULL, FK → `languages(language_code)` ON DELETE RESTRICT | Language being learnt |
 | `title` | `VARCHAR(100)` | NOT NULL, UNIQUE | Course display name |
 | `launched_on` | `DATE` | NOT NULL | Date only — no time component in data |
 
-**CHECK:** `from_lang <> learning_lang` — a course cannot teach a language in itself.  
+**CHECK:** `chk_courses_different_languages CHECK (from_lang <> learning_lang)` — a course cannot teach a language in itself.  
 **Indexes auto-created:** PK on `course_id`; UNIQUE on `title`.
 
 ---
@@ -57,13 +57,13 @@ All tables are created inside the schema `duolingo` (`CREATE SCHEMA duolingo; SE
 
 | Column | Type | Constraints | Why |
 |---|---|---|---|
-| `unit_id` | `SMALLINT` | **PK** | 220 rows; SMALLINT sufficient |
-| `course_id` | `SMALLINT` | NOT NULL, FK → `courses(course_id)` ON DELETE CASCADE | Deleting a course deletes its units |
-| `unit_no` | `SMALLINT` | NOT NULL, CHECK ≥ 1 | Sequential ordering within course |
+| `unit_id` | `INT` | **PK** | Surrogate identifier for unit |
+| `course_id` | `INT` | NOT NULL, FK → `courses(course_id)` ON DELETE CASCADE | Deleting a course deletes its units |
+| `unit_no` | `INT` | NOT NULL, CHECK > 0 | Sequential ordering within course |
 | `title` | `VARCHAR(100)` | NOT NULL | Unit display name |
-| `cefr_level` | `VARCHAR(2)` | NOT NULL, CHECK IN ('A1','A2','B1','B2','C1') | CEFR standard language levels only |
+| `cefr_level` | `VARCHAR(10)` | NOT NULL, CHECK IN ('A1','A2','B1','B2','C1') | CEFR standard language levels only |
 
-**UNIQUE:** `(course_id, unit_no)` — unit number is unique within a course.  
+**UNIQUE:** `uq_units_course_unit_no UNIQUE (course_id, unit_no)` — unit number is unique within a course.  
 **Indexes auto-created:** PK on `unit_id`; UNIQUE on `(course_id, unit_no)`.
 
 ---
@@ -72,13 +72,13 @@ All tables are created inside the schema `duolingo` (`CREATE SCHEMA duolingo; SE
 
 | Column | Type | Constraints | Why |
 |---|---|---|---|
-| `lesson_id` | `SMALLINT` | **PK** | 1,760 rows; SMALLINT sufficient |
-| `unit_id` | `SMALLINT` | NOT NULL, FK → `units(unit_id)` ON DELETE CASCADE | Deleting a unit deletes its lessons |
-| `lesson_no` | `SMALLINT` | NOT NULL, CHECK ≥ 1 | Sequential ordering within unit |
-| `lesson_type` | `VARCHAR(10)` | NOT NULL, CHECK IN ('LEARN','PRACTICE','STORY','LEGENDARY') | Only these lesson types exist |
-| `xp_value` | `SMALLINT` | NOT NULL, CHECK ≥ 0 | XP awarded on completion; cannot be negative |
+| `lesson_id` | `INT` | **PK** | Surrogate identifier for lesson |
+| `unit_id` | `INT` | NOT NULL, FK → `units(unit_id)` ON DELETE CASCADE | Deleting a unit deletes its lessons |
+| `lesson_no` | `INT` | NOT NULL, CHECK > 0 | Sequential ordering within unit |
+| `lesson_type` | `VARCHAR(20)` | NOT NULL, CHECK IN ('LEARN','PRACTICE','STORY','LEGENDARY') | Only these lesson types exist |
+| `xp_value` | `INT` | NOT NULL, CHECK ≥ 0 | XP awarded on completion; non-negative |
 
-**UNIQUE:** `(unit_id, lesson_no)` — lesson number is unique within a unit.  
+**UNIQUE:** `uq_lessons_unit_lesson_no UNIQUE (unit_id, lesson_no)` — lesson number is unique within a unit.  
 **Indexes auto-created:** PK on `lesson_id`; UNIQUE on `(unit_id, lesson_no)`.
 
 ---
@@ -87,16 +87,16 @@ All tables are created inside the schema `duolingo` (`CREATE SCHEMA duolingo; SE
 
 | Column | Type | Constraints | Why |
 |---|---|---|---|
-| `learner_id` | `INTEGER` | **PK** | 30,000 rows; INTEGER needed |
+| `learner_id` | `INT` | **PK** | Surrogate identifier for learner |
 | `username` | `VARCHAR(50)` | NOT NULL, UNIQUE | Login handle; R11/R16 search by this |
 | `email` | `VARCHAR(100)` | NOT NULL, UNIQUE | Sign-in identifier; must be unique |
-| `country_code` | `CHAR(2)` | NOT NULL | ISO 3166-1 alpha-2 (e.g. `IN`, `US`) |
-| `daily_goal_xp` | `SMALLINT` | NOT NULL, CHECK IN (10,20,30,50) | Only these goal values are offered in the app |
-| `subscription` | `VARCHAR(10)` | NOT NULL, CHECK IN ('FREE','SUPER','MAX') | Three subscription tiers |
-| `referred_by` | `INTEGER` | NULL, FK → `learners(learner_id)` ON DELETE SET NULL | Self-referential; NULL = not referred. SET NULL so referrer deletion doesn't cascade |
+| `country_code` | `VARCHAR(5)` | NOT NULL | Country code (e.g. `IN`, `US`) |
+| `daily_goal_xp` | `INT` | NOT NULL, CHECK IN (10,20,30,50) | Only these goal values are offered in the app |
+| `subscription` | `VARCHAR(20)` | NOT NULL, CHECK IN ('FREE','SUPER','MAX') | Three subscription tiers |
+| `referred_by` | `INT` | NULL, FK → `learners(learner_id)` ON DELETE SET NULL | Self-referential; NULL = not referred. SET NULL so referrer deletion doesn't cascade |
 | `joined_at` | `TIMESTAMPTZ` | NOT NULL | Account creation timestamp with timezone |
 
-**CHECK:** `referred_by <> learner_id` — a learner cannot refer themselves.  
+**CHECK:** `chk_learners_no_self_referral CHECK (referred_by IS NULL OR referred_by <> learner_id)` — a learner cannot refer themselves.  
 **Indexes auto-created:** PK on `learner_id`; UNIQUE on `username`; UNIQUE on `email`.
 
 **NULL reasoning:** `referred_by` is NULL for the majority of learners (most joined organically). This is intentional and must be handled with `IS NOT NULL` in R13 — see Phase 1, Assumption 5.
@@ -107,10 +107,10 @@ All tables are created inside the schema `duolingo` (`CREATE SCHEMA duolingo; SE
 
 | Column | Type | Constraints | Why |
 |---|---|---|---|
-| `learner_id` | `INTEGER` | **PK** (part), FK → `learners(learner_id)` ON DELETE CASCADE | Deleting a learner removes their enrollments |
-| `course_id` | `SMALLINT` | **PK** (part), FK → `courses(course_id)` ON DELETE RESTRICT | Courses shouldn't disappear while learners are enrolled |
+| `learner_id` | `INT` | **PK** (part), FK → `learners(learner_id)` ON DELETE CASCADE | Deleting a learner removes their enrollments |
+| `course_id` | `INT` | **PK** (part), FK → `courses(course_id)` ON DELETE RESTRICT | Courses shouldn't disappear while learners are enrolled |
 | `enrolled_at` | `TIMESTAMPTZ` | NOT NULL | When the learner enrolled |
-| `total_xp` | `INTEGER` | NOT NULL DEFAULT 0, CHECK ≥ 0 | Denormalized XP cache (see note below) |
+| `total_xp` | `INT` | NOT NULL DEFAULT 0, CHECK ≥ 0 | Denormalized XP cache (see note below) |
 | `is_active` | `BOOLEAN` | NOT NULL DEFAULT TRUE | Whether the learner is currently active in this course |
 
 **PK:** `(learner_id, course_id)` — M:N junction table. A learner can enrol in multiple courses; each course has many learners.
@@ -123,22 +123,22 @@ All tables are created inside the schema `duolingo` (`CREATE SCHEMA duolingo; SE
 
 | Column | Type | Constraints | Why |
 |---|---|---|---|
-| `attempt_id` | `INTEGER` | **PK** | 188,300 rows; INTEGER required |
-| `learner_id` | `INTEGER` | NOT NULL, FK → `learners(learner_id)` ON DELETE CASCADE | GDPR: learner deletion removes their data |
-| `lesson_id` | `SMALLINT` | NOT NULL, FK → `lessons(lesson_id)` ON DELETE RESTRICT | Historical records; don't silently delete |
+| `attempt_id` | `BIGINT` | **PK** | 188,300 rows; sparse IDs up to 11M+, W01 inserts 90M+; BIGINT safe for 20× scale |
+| `learner_id` | `INT` | NOT NULL, FK → `learners(learner_id)` ON DELETE CASCADE | GDPR: learner deletion removes their data |
+| `lesson_id` | `INT` | NOT NULL, FK → `lessons(lesson_id)` ON DELETE RESTRICT | Historical records; don't silently delete |
 | `started_at` | `TIMESTAMPTZ` | NOT NULL | When the attempt began |
 | `completed_at` | `TIMESTAMPTZ` | NULL | NULL = abandoned/quit before finishing |
-| `mistakes` | `SMALLINT` | NOT NULL DEFAULT 0, CHECK ≥ 0 | Errors made during attempt |
-| `hearts_lost` | `SMALLINT` | NOT NULL DEFAULT 0, CHECK ≥ 0 | Hearts deducted |
-| `xp_earned` | `SMALLINT` | NOT NULL DEFAULT 0, CHECK ≥ 0 | XP awarded |
-| `is_perfect` | `BOOLEAN` | NOT NULL DEFAULT FALSE | Derived: true iff `mistakes = 0` and completed |
-| `device` | `VARCHAR(10)` | NOT NULL, CHECK IN ('ANDROID','IOS','WEB') | Platform used |
+| `mistakes` | `INT` | NOT NULL DEFAULT 0, CHECK ≥ 0 | Errors made during attempt |
+| `hearts_lost` | `INT` | NOT NULL DEFAULT 0, CHECK ≥ 0 | Hearts deducted |
+| `xp_earned` | `INT` | NOT NULL DEFAULT 0, CHECK ≥ 0 | XP awarded |
+| `is_perfect` | `BOOLEAN` | NOT NULL DEFAULT FALSE | Whether attempt is marked perfect |
+| `device` | `VARCHAR(20)` | NOT NULL, CHECK IN ('WEB','ANDROID','IOS') | Platform used |
 
 **CHECKs:**
-- `hearts_lost <= mistakes` — can't lose more hearts than mistakes made
-- `(completed_at IS NULL) OR (completed_at >= started_at)` — can't finish before starting
-- `(completed_at IS NOT NULL) OR (xp_earned = 0)` — quit attempts earn 0 XP
-- `(mistakes = 0) = is_perfect` — perfect if and only if zero mistakes
+- `chk_attempts_hearts_le_mistakes CHECK (hearts_lost <= mistakes)` — can't lose more hearts than mistakes made
+- `chk_attempts_started_before_completed CHECK (completed_at IS NULL OR started_at <= completed_at)` — can't finish before starting
+- `chk_attempts_quit_zero_xp CHECK (completed_at IS NOT NULL OR xp_earned = 0)` — quit attempts earn 0 XP
+- `chk_attempts_perfect_mistakes CHECK (NOT is_perfect OR (mistakes = 0 AND completed_at IS NOT NULL))` — chosen one-sided (perfect must be justified) rather than iff, so a legitimately unflagged zero-mistake attempt can never break a future load.
 
 **NULL reasoning:**
 - `completed_at` is NULL for abandoned attempts (~quit rate). This is by design.
@@ -152,14 +152,14 @@ All tables are created inside the schema `duolingo` (`CREATE SCHEMA duolingo; SE
 
 | Column | Type | Constraints | Why |
 |---|---|---|---|
-| `learner_id` | `INTEGER` | **PK** (part), FK → `learners(learner_id)` ON DELETE CASCADE | Activity tied to learner |
+| `learner_id` | `INT` | **PK** (part), FK → `learners(learner_id)` ON DELETE CASCADE | Activity tied to learner |
 | `activity_date` | `DATE` | **PK** (part) | Calendar date (no time needed) |
-| `xp` | `INTEGER` | NOT NULL DEFAULT 0, CHECK ≥ 0 | Total XP earned on this date |
-| `lessons_completed` | `SMALLINT` | NOT NULL DEFAULT 0, CHECK ≥ 0 | Lessons finished on this date |
+| `xp` | `INT` | NOT NULL DEFAULT 0, CHECK ≥ 0 | Total XP earned on this date |
+| `lessons_completed` | `INT` | NOT NULL DEFAULT 0, CHECK ≥ 0 | Lessons finished on this date |
 | `used_streak_freeze` | `BOOLEAN` | NOT NULL DEFAULT FALSE | Whether a streak freeze was used |
 
 **PK:** `(learner_id, activity_date)` — one row per learner per day.  
-**CHECK:** `(used_streak_freeze = FALSE) OR (xp = 0)` — a streak freeze day has no lesson XP.
+**CHECK:** `chk_daily_freeze_zero_xp CHECK (NOT used_streak_freeze OR xp = 0)` — a streak freeze day has no lesson XP.
 
 **Denormalization note:** `xp` could be summed from `lesson_attempts.xp_earned` per learner per day. Stored here for fast streak calculation (R03) and daily goal ring (R04) without scanning 188k attempts.
 
@@ -169,18 +169,19 @@ All tables are created inside the schema `duolingo` (`CREATE SCHEMA duolingo; SE
 
 | Column | Type | Constraints | Why |
 |---|---|---|---|
-| `learner_id` | `INTEGER` | **PK** (part), FK → `learners(learner_id)` ON DELETE CASCADE | Membership tied to learner |
+| `learner_id` | `INT` | **PK** (part), FK → `learners(learner_id)` ON DELETE CASCADE | Membership tied to learner |
 | `week_start` | `DATE` | **PK** (part) | Week identifier; always a Monday |
-| `tier` | `VARCHAR(10)` | NOT NULL, CHECK IN ('BRONZE','SILVER','GOLD','SAPPHIRE','RUBY','EMERALD','AMETHYST','PEARL','OBSIDIAN','DIAMOND') | Valid Duolingo league tiers |
-| `cohort_id` | `INTEGER` | NOT NULL | Group of ~30 learners competing together |
-| `weekly_xp` | `INTEGER` | NOT NULL DEFAULT 0, CHECK ≥ 0 | XP earned in this league week |
-| `final_rank` | `SMALLINT` | NULL | NULL until W04 closes the week |
-| `result` | `VARCHAR(10)` | NULL, CHECK IN ('PROMOTED','DEMOTED','STAYED') | NULL until W04 closes the week |
+| `tier` | `VARCHAR(20)` | NOT NULL, CHECK IN ('BRONZE','SILVER','GOLD','SAPPHIRE','RUBY','EMERALD','AMETHYST','DIAMOND') | Valid 8 league tiers present in data |
+| `cohort_id` | `BIGINT` | NOT NULL | Group of ~30 learners competing together |
+| `weekly_xp` | `INT` | NOT NULL DEFAULT 0, CHECK ≥ 0 | XP earned in this league week |
+| `final_rank` | `INT` | NULL | NULL until W04 closes the week |
+| `result` | `VARCHAR(20)` | NULL, CHECK IN ('PROMOTED','DEMOTED','STAYED') | NULL until W04 closes the week |
 
 **PK:** `(learner_id, week_start)` — one league entry per learner per week.  
 **CHECKs:**
-- `EXTRACT(DOW FROM week_start) = 1` — always a Monday (DOW=1 in PostgreSQL)
-- `(final_rank IS NULL) = (result IS NULL)` — rank and result are set together by W04
+- `chk_leagues_week_start_monday CHECK (EXTRACT(ISODOW FROM week_start) = 1)` — always a Monday (ISODOW=1 in PostgreSQL)
+- `chk_leagues_rank_result_together CHECK ((final_rank IS NULL AND result IS NULL) OR (final_rank IS NOT NULL AND result IS NOT NULL))` — rank and result are set together by W04
+- `chk_leagues_final_rank_range CHECK (final_rank IS NULL OR (final_rank >= 1 AND final_rank <= 30))` — cohort rank bounds
 
 **NULL reasoning:** `final_rank` and `result` are NULL for the current (open) week and become NOT NULL after W04 runs. This is by design.
 
@@ -190,9 +191,11 @@ All tables are created inside the schema `duolingo` (`CREATE SCHEMA duolingo; SE
 
 | Column | Type | Constraints | Why |
 |---|---|---|---|
-| `achievement_id` | `SMALLINT` | **PK** | 10 rows; SMALLINT sufficient |
-| `code` | `VARCHAR(20)` | NOT NULL, UNIQUE | Machine-readable key (e.g. `XP_100`, `FIRST_LESSON`) |
-| `name` | `VARCHAR(50)` | NOT NULL, UNIQUE | Display name (e.g. "First Lesson") |
+| `achievement_id` | `INT` | **PK** | Surrogate identifier for badge |
+| `code` | `VARCHAR(50)` | NOT NULL, UNIQUE | Machine-readable key (e.g. `XP_100`, `FIRST_LESSON`) |
+| `name` | `VARCHAR(100)` | NOT NULL, UNIQUE | Display name (e.g. "First Lesson") |
+
+**Indexes auto-created:** PK on `achievement_id`; UNIQUE on `code`; UNIQUE on `name`.
 
 ---
 
@@ -200,36 +203,47 @@ All tables are created inside the schema `duolingo` (`CREATE SCHEMA duolingo; SE
 
 | Column | Type | Constraints | Why |
 |---|---|---|---|
-| `learner_id` | `INTEGER` | **PK** (part), FK → `learners(learner_id)` ON DELETE CASCADE | Tied to learner |
-| `achievement_id` | `SMALLINT` | **PK** (part), FK → `achievements(achievement_id)` ON DELETE RESTRICT | Don't delete achievement definitions |
+| `learner_id` | `INT` | **PK** (part), FK → `learners(learner_id)` ON DELETE CASCADE | Tied to learner |
+| `achievement_id` | `INT` | **PK** (part), FK → `achievements(achievement_id)` ON DELETE RESTRICT | Don't delete achievement definitions |
 | `earned_at` | `TIMESTAMPTZ` | NOT NULL | When the badge was awarded |
 
 **PK:** `(learner_id, achievement_id)` — a learner earns each badge at most once (enforced by PK; W05 uses `ON CONFLICT DO NOTHING`).
 
 ---
 
-## 3. CHECK Constraints Summary
+## 3. CHECK Constraints Summary (27 Named CHECK Constraints)
 
-| # | Table | Constraint | Rule |
-|---|---|---|---|
-| 1 | `courses` | `from_lang <> learning_lang` | Can't learn same language you speak |
-| 2 | `units` | `cefr_level IN ('A1','A2','B1','B2','C1')` | Standard CEFR levels only |
-| 3 | `units` | `unit_no >= 1` | Positive ordering |
-| 4 | `lessons` | `lesson_type IN ('LEARN','PRACTICE','STORY','LEGENDARY')` | Valid lesson types only |
-| 5 | `lessons` | `xp_value >= 0` | No negative XP |
-| 6 | `learners` | `daily_goal_xp IN (10, 20, 30, 50)` | App only offers these values |
-| 7 | `learners` | `subscription IN ('FREE','SUPER','MAX')` | Three valid tiers |
-| 8 | `learners` | `referred_by <> learner_id` | Self-referral not allowed |
-| 9 | `lesson_attempts` | `device IN ('ANDROID','IOS','WEB')` | Valid device types |
-| 10 | `lesson_attempts` | `hearts_lost <= mistakes` | Can't lose more hearts than mistakes |
-| 11 | `lesson_attempts` | `(completed_at IS NULL) OR (completed_at >= started_at)` | Completion after start |
-| 12 | `lesson_attempts` | `(completed_at IS NOT NULL) OR (xp_earned = 0)` | Quit = 0 XP |
-| 13 | `lesson_attempts` | `(mistakes = 0) = is_perfect` | Perfect iff zero mistakes |
-| 14 | `daily_activity` | `xp >= 0` | Non-negative XP |
-| 15 | `daily_activity` | `(used_streak_freeze = FALSE) OR (xp = 0)` | Freeze day has 0 lesson XP |
-| 16 | `league_memberships` | `EXTRACT(DOW FROM week_start) = 1` | Weeks start on Monday |
-| 17 | `league_memberships` | `(final_rank IS NULL) = (result IS NULL)` | Set together by W04 |
-| 18 | `league_memberships` | `result IN ('PROMOTED','DEMOTED','STAYED')` | Valid outcomes only |
+| # | Table | Constraint Name | SQL Expression | Business Rule Enforced |
+|---|---|---|---|---|
+| 1 | `courses` | `chk_courses_different_languages` | `from_lang <> learning_lang` | Source and target languages must differ |
+| 2 | `units` | `chk_units_unit_no_positive` | `unit_no > 0` | Unit number must be positive |
+| 3 | `units` | `chk_units_cefr_level` | `cefr_level IN ('A1', 'A2', 'B1', 'B2', 'C1')` | Standard CEFR levels only |
+| 4 | `lessons` | `chk_lessons_lesson_no_positive` | `lesson_no > 0` | Lesson number must be positive |
+| 5 | `lessons` | `chk_lessons_lesson_type` | `lesson_type IN ('LEARN', 'PRACTICE', 'STORY', 'LEGENDARY')` | Only valid lesson types allowed |
+| 6 | `lessons` | `chk_lessons_xp_value_non_negative` | `xp_value >= 0` | XP values cannot be negative |
+| 7 | `learners` | `chk_learners_daily_goal_xp` | `daily_goal_xp IN (10, 20, 30, 50)` | Allowed daily goals supported by UI |
+| 8 | `learners` | `chk_learners_subscription` | `subscription IN ('FREE', 'SUPER', 'MAX')` | Valid subscription tiers |
+| 9 | `learners` | `chk_learners_no_self_referral` | `referred_by IS NULL OR referred_by <> learner_id` | Learner cannot refer themselves |
+| 10 | `enrollments` | `chk_enrollments_total_xp_non_negative` | `total_xp >= 0` | Cumulative course XP cannot be negative |
+| 11 | `lesson_attempts` | `chk_attempts_mistakes_non_negative` | `mistakes >= 0` | Mistakes count must be non-negative |
+| 12 | `lesson_attempts` | `chk_attempts_hearts_lost_non_negative` | `hearts_lost >= 0` | Hearts lost must be non-negative |
+| 13 | `lesson_attempts` | `chk_attempts_xp_earned_non_negative` | `xp_earned >= 0` | XP earned must be non-negative |
+| 14 | `lesson_attempts` | `chk_attempts_hearts_le_mistakes` | `hearts_lost <= mistakes` | Hearts lost cannot exceed mistake count |
+| 15 | `lesson_attempts` | `chk_attempts_device` | `device IN ('WEB', 'ANDROID', 'IOS')` | Supported device platforms only |
+| 16 | `lesson_attempts` | `chk_attempts_perfect_mistakes` | `NOT is_perfect OR (mistakes = 0 AND completed_at IS NOT NULL)` | Perfect attempt implies 0 mistakes and completed |
+| 17 | `lesson_attempts` | `chk_attempts_quit_zero_xp` | `completed_at IS NOT NULL OR xp_earned = 0` | Quit/abandoned attempts cannot award XP |
+| 18 | `lesson_attempts` | `chk_attempts_started_before_completed` | `completed_at IS NULL OR started_at <= completed_at` | Completion cannot precede start time |
+| 19 | `daily_activity` | `chk_daily_xp_non_negative` | `xp >= 0` | Daily XP cannot be negative |
+| 20 | `daily_activity` | `chk_daily_lessons_completed_non_negative` | `lessons_completed >= 0` | Completed lessons count cannot be negative |
+| 21 | `daily_activity` | `chk_daily_freeze_zero_xp` | `NOT used_streak_freeze OR xp = 0` | Streak freeze day has 0 lesson XP |
+| 22 | `league_memberships` | `chk_leagues_tier` | `tier IN ('BRONZE', 'SILVER', 'GOLD', 'SAPPHIRE', 'RUBY', 'EMERALD', 'AMETHYST', 'DIAMOND')` | Valid 8 Duolingo league tiers |
+| 23 | `league_memberships` | `chk_leagues_weekly_xp_non_negative` | `weekly_xp >= 0` | Weekly XP cannot be negative |
+| 24 | `league_memberships` | `chk_leagues_result` | `result IS NULL OR result IN ('PROMOTED', 'DEMOTED', 'STAYED')` | Valid outcome results |
+| 25 | `league_memberships` | `chk_leagues_rank_result_together` | `(final_rank IS NULL AND result IS NULL) OR (final_rank IS NOT NULL AND result IS NOT NULL)` | Rank and result must be assigned together |
+| 26 | `league_memberships` | `chk_leagues_final_rank_range` | `final_rank IS NULL OR (final_rank >= 1 AND final_rank <= 30)` | Cohort rank within valid bounds (1–30) |
+| 27 | `league_memberships` | `chk_leagues_week_start_monday` | `EXTRACT(ISODOW FROM week_start) = 1` | League week must start on a Monday |
+
+*Note: In addition to the 27 CHECK constraints above, the schema defines 8 natural UNIQUE candidate keys (`languages.language_name`, `courses.title`, `units(course_id, unit_no)`, `lessons(unit_id, lesson_no)`, `learners.username`, `learners.email`, `achievements.code`, `achievements.name`).*
 
 ---
 
@@ -301,88 +315,88 @@ All tables are in **3NF / BCNF**. For each table, every non-key attribute depend
 
 ## 7. ER Diagram
 
-See [`diagrams/er_diagram.png`](../diagrams/er_diagram.png) for the visual ER diagram.
+See [`diagrams/er_diagram.svg`](../diagrams/er_diagram.svg) for the visual ER diagram.
 
 ```mermaid
 erDiagram
     languages {
-        char2 language_code PK
+        varchar5 language_code PK
         varchar50 language_name
     }
     courses {
-        smallint course_id PK
-        char2 from_lang FK
-        char2 learning_lang FK
+        int course_id PK
+        varchar5 from_lang FK
+        varchar5 learning_lang FK
         varchar100 title
         date launched_on
     }
     units {
-        smallint unit_id PK
-        smallint course_id FK
-        smallint unit_no
+        int unit_id PK
+        int course_id FK
+        int unit_no
         varchar100 title
-        varchar2 cefr_level
+        varchar10 cefr_level
     }
     lessons {
-        smallint lesson_id PK
-        smallint unit_id FK
-        smallint lesson_no
-        varchar10 lesson_type
-        smallint xp_value
+        int lesson_id PK
+        int unit_id FK
+        int lesson_no
+        varchar20 lesson_type
+        int xp_value
     }
     learners {
-        integer learner_id PK
+        int learner_id PK
         varchar50 username
         varchar100 email
-        char2 country_code
-        smallint daily_goal_xp
-        varchar10 subscription
-        integer referred_by FK
+        varchar5 country_code
+        int daily_goal_xp
+        varchar20 subscription
+        int referred_by FK
         timestamptz joined_at
     }
     enrollments {
-        integer learner_id PK-FK
-        smallint course_id PK-FK
+        int learner_id PK-FK
+        int course_id PK-FK
         timestamptz enrolled_at
-        integer total_xp
+        int total_xp
         boolean is_active
     }
     lesson_attempts {
-        integer attempt_id PK
-        integer learner_id FK
-        smallint lesson_id FK
+        bigint attempt_id PK
+        int learner_id FK
+        int lesson_id FK
         timestamptz started_at
         timestamptz completed_at
-        smallint mistakes
-        smallint hearts_lost
-        smallint xp_earned
+        int mistakes
+        int hearts_lost
+        int xp_earned
         boolean is_perfect
-        varchar10 device
+        varchar20 device
     }
     daily_activity {
-        integer learner_id PK-FK
+        int learner_id PK-FK
         date activity_date PK
-        integer xp
-        smallint lessons_completed
+        int xp
+        int lessons_completed
         boolean used_streak_freeze
     }
     league_memberships {
-        integer learner_id PK-FK
+        int learner_id PK-FK
         date week_start PK
-        varchar10 tier
-        integer cohort_id
-        integer weekly_xp
-        smallint final_rank
-        varchar10 result
+        varchar20 tier
+        bigint cohort_id
+        int weekly_xp
+        int final_rank
+        varchar20 result
     }
     achievements {
-        smallint achievement_id PK
-        varchar20 code
-        varchar50 name
+        int achievement_id PK
+        varchar50 code
+        varchar100 name
     }
     learner_achievements {
-        integer learner_id PK-FK
-        smallint achievement_id PK-FK
+        int learner_id PK-FK
+        int achievement_id PK-FK
         timestamptz earned_at
     }
 
@@ -409,19 +423,19 @@ Tables are loaded in dependency order (parents before children):
 
 ```
 1.  languages              (no dependencies)
-2.  courses                (FK → languages)
-3.  units                  (FK → courses)
-4.  lessons                (FK → units)
-5.  learners               (self-FK referred_by: added after bulk load)
-6.  enrollments            (FK → learners, courses)
-7.  lesson_attempts        (FK → learners, lessons)
-8.  daily_activity         (FK → learners)
-9.  league_memberships     (FK → learners)
-10. achievements           (no dependencies)
+2.  achievements           (no dependencies)
+3.  courses                (FK → languages)
+4.  units                  (FK → courses)
+5.  lessons                (FK → units)
+6.  learners               (self-FK referred_by: defined inline)
+7.  enrollments            (FK → learners, courses)
+8.  lesson_attempts        (FK → learners, lessons)
+9.  daily_activity         (FK → learners)
+10. league_memberships     (FK → learners)
 11. learner_achievements   (FK → learners, achievements)
 ```
 
-**Note on `learners.referred_by`:** The self-referential FK is added after all learner rows are loaded to avoid forward-reference violations during bulk insert.
+**Note on `learners.referred_by`:** The self-referential FK on `learners.referred_by` is defined inline. This loads without errors because every referral points backward (0 forward references among 8,898 referral rows) and the CSV is sorted ascending by `learner_id`, so referenced rows are always inserted before the rows referring to them.
 
 ---
 
@@ -446,6 +460,8 @@ Executed on PostgreSQL 18.6 via `sql/02_load_data.sql`.
 | `learner_achievements` | 38,860 | 38,860 | ✅ |
 
 ### 9.2 Business Rule & Integrity Checks
+
+All date-based checks and benchmarks run with `SET timezone = 'Asia/Kolkata';` to match the seed data's `+05:30` offset.
 
 | Check | Query Result | Status |
 |---|---|:---:|
@@ -475,10 +491,10 @@ PostgreSQL automatically creates B-tree indexes for every `PRIMARY KEY` and `UNI
 
 | Index (auto-created) | Table | Type |
 |---|---|---|
-| PK on `language_code` | `languages` | B-tree |
+| PK on `language_code`; UNIQUE on `language_name` | `languages` | B-tree |
 | PK on `course_id`; UNIQUE on `title` | `courses` | B-tree |
-| PK on `unit_id`; UNIQUE on `(course_id, unit_no)` | `units` | B-tree |
-| PK on `lesson_id`; UNIQUE on `(unit_id, lesson_no)` | `lessons` | B-tree |
+| PK on `unit_id`; UNIQUE on `(course_id, unit_no)` (`uq_units_course_unit_no`) | `units` | B-tree |
+| PK on `lesson_id`; UNIQUE on `(unit_id, lesson_no)` (`uq_lessons_unit_lesson_no`) | `lessons` | B-tree |
 | PK on `learner_id`; UNIQUE on `username`; UNIQUE on `email` | `learners` | B-tree |
 | PK on `(learner_id, course_id)` | `enrollments` | B-tree |
 | PK on `attempt_id` | `lesson_attempts` | B-tree |
@@ -488,4 +504,3 @@ PostgreSQL automatically creates B-tree indexes for every `PRIMARY KEY` and `UNI
 | PK on `(learner_id, achievement_id)` | `learner_achievements` | B-tree |
 
 **No manual indexes are created in Phase 2.** Additional indexes will be added only in Phase 4 (`sql/05_indexes.sql`).
-
