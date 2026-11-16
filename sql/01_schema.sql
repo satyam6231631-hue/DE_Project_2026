@@ -32,7 +32,7 @@ DROP TABLE IF EXISTS languages CASCADE;
 -- ---------------------------------------------------------------------
 CREATE TABLE languages (
     language_code VARCHAR(5) PRIMARY KEY,
-    language_name VARCHAR(50) NOT NULL
+    language_name VARCHAR(50) NOT NULL UNIQUE
 );
 
 -- ---------------------------------------------------------------------
@@ -43,7 +43,7 @@ CREATE TABLE courses (
     course_id     INT PRIMARY KEY,
     from_lang     VARCHAR(5) NOT NULL REFERENCES languages(language_code) ON DELETE RESTRICT,
     learning_lang VARCHAR(5) NOT NULL REFERENCES languages(language_code) ON DELETE RESTRICT,
-    title         VARCHAR(100) NOT NULL,
+    title         VARCHAR(100) NOT NULL UNIQUE,
     launched_on   DATE NOT NULL,
     CONSTRAINT chk_courses_different_languages CHECK (from_lang <> learning_lang)
 );
@@ -92,7 +92,7 @@ CREATE TABLE learners (
     subscription  VARCHAR(20) NOT NULL,
     referred_by   INT REFERENCES learners(learner_id) ON DELETE SET NULL,
     joined_at     TIMESTAMPTZ NOT NULL,
-    CONSTRAINT chk_learners_daily_goal_xp CHECK (daily_goal_xp > 0),
+    CONSTRAINT chk_learners_daily_goal_xp CHECK (daily_goal_xp IN (10, 20, 30, 50)),
     CONSTRAINT chk_learners_subscription CHECK (subscription IN ('FREE', 'SUPER', 'MAX')),
     CONSTRAINT chk_learners_no_self_referral CHECK (referred_by IS NULL OR referred_by <> learner_id)
 );
@@ -180,7 +180,7 @@ CREATE TABLE league_memberships (
 CREATE TABLE achievements (
     achievement_id INT PRIMARY KEY,
     code           VARCHAR(50) NOT NULL UNIQUE,
-    name           VARCHAR(100) NOT NULL
+    name           VARCHAR(100) NOT NULL UNIQUE
 );
 
 -- ---------------------------------------------------------------------
