@@ -3,7 +3,7 @@
 **Project:** Duolingo Language Learning Database  
 **Team:** Mudit Jindal (Lead), Satyam, Shirsh, Nilesh Saini  
 **Database:** PostgreSQL 18.6 (Homebrew) · **Hardware:** MacBook Pro M4 (as specified in `team.json`)  
-**Workload:** 30 queries (`queries/workload_30.sql`) · **Method:** 3 runs per query via `EXPLAIN (ANALYZE, BUFFERS)`
+**Workload:** 30 queries (`queries/workload_30.sql`) · **Method:** 3 runs per query via `EXPLAIN (ANALYZE, BUFFERS)` · Session timezone: Asia/Kolkata
 
 ---
 
@@ -16,6 +16,7 @@ Baseline performance measurements were gathered against the unindexed schema (on
 - **Slowest Query:** `R19` (Curriculum lesson report) at **1,437.911 ms** (~1.44 seconds) due to repeated subquery executions scanning 188,300 attempts.
 - **Critical Real-Time Hotspots:** Customer-facing queries `R04` (5.315 ms) and `R06` (5.805 ms) exceed the strict `< 5 ms` real-time SLA due to sequential scans on `lesson_attempts`.
 - **Heaviest Batch Write:** `W05` (Achievements catch-up) takes **39.685 ms** due to full scans on `enrollments` and `achievements`.
+- **Correctness bug:** `R13` currently returns **0 rows** (raw plan `benchmarks/results/baseline/R13.txt` shows `rows=0.00`): `NOT IN` with a subquery containing NULLs (21,102 NULL `referred_by` values) can never be TRUE, so every learner is filtered out. Phase 4 rewrites it with `NOT EXISTS`.
 
 ---
 
@@ -23,36 +24,70 @@ Baseline performance measurements were gathered against the unindexed schema (on
 
 | SQL Query | Type | Run 1 (ms) | Run 2 (ms) | Run 3 (ms) | Average (ms) | Scan Type |
 |---|:---:|---:|---:|---:|---:|---|
-| **R01**: Course path: units and lessons of the Spanish course for English speakers, in order | READ | 0.197 | 0.098 | 0.110 | **0.135** | `Seq Scan on units | Seq Scan on courses | Index Scan using uq_lessons_unit_lesson_no on lessons` |
-| **R02**: Home screen: learner 1042's courses with total XP | READ | 0.044 | 0.039 | 0.037 | **0.040** | `Index Scan using enrollments_pkey on enrollments | Seq Scan on courses` |
+| **R01**: Course path: units and lessons of the Spanish course for English speakers, in order | READ | 0.197 | 0.098 | 0.110 | **0.135** | `Seq Scan on units \| Seq Scan on courses \| Index Scan using uq_lessons_unit_lesson_no on lessons` |
+| **R02**: Home screen: learner 1042's courses with total XP | READ | 0.044 | 0.039 | 0.037 | **0.040** | `Index Scan using enrollments_pkey on enrollments \| Seq Scan on courses` |
 | **R03**: Streak counter: learner 1042's current streak (consecutive days up to 30 June 2026, freezes count) | READ | 0.089 | 0.086 | 0.088 | **0.088** | `Index Only Scan using daily_activity_pkey on daily_activity` |
-| **R04**: Daily goal ring: XP learner 1042 earned on 30 June 2026 vs their daily goal | READ | 5.434 | 5.421 | 5.091 | **5.315** | `Index Scan using learners_pkey on learners | Seq Scan on lesson_attempts` |
-| **R05**: Leagues tab: leaderboard of learner 1042's cohort for the week starting 29 June 2026 | READ | 0.945 | 0.947 | 0.804 | **0.899** | `Index Scan using league_memberships_pkey on league_memberships | Seq Scan on league_memberships | Index Scan using learners_pkey on learners` |
-| **R06**: "Start" button: the first lesson of learner 1042's Spanish course they have not completed yet | READ | 6.154 | 5.716 | 5.546 | **5.805** | `Index Scan using uq_units_course_unit_no on units | Index Scan using uq_lessons_unit_lesson_no on lessons | Seq Scan on lesson_attempts` |
-| **R07**: Curriculum team: lessons of the Spanish course with the most mistakes per attempt (100+ attempts) | READ | 15.138 | 15.145 | 15.150 | **15.144** | `Seq Scan on lesson_attempts | Seq Scan on lessons | Seq Scan on units` |
-| **R08**: Product analytics: quit rate per lesson type | READ | 17.985 | 20.188 | 20.031 | **19.401** | `Seq Scan on lesson_attempts | Seq Scan on lessons` |
+| **R04**: Daily goal ring: XP learner 1042 earned on 30 June 2026 vs their daily goal | READ | 5.434 | 5.421 | 5.091 | **5.315** | `Index Scan using learners_pkey on learners \| Seq Scan on lesson_attempts` |
+| **R05**: Leagues tab: leaderboard of learner 1042's cohort for the week starting 29 June 2026 | READ | 0.945 | 0.947 | 0.804 | **0.899** | `Index Scan using league_memberships_pkey on league_memberships \| Seq Scan on league_memberships \| Index Scan using learners_pkey on learners` |
+| **R06**: "Start" button: the first lesson of learner 1042's Spanish course they have not completed yet | READ | 6.154 | 5.716 | 5.546 | **5.805** | `Index Scan using uq_units_course_unit_no on units \| Index Scan using uq_lessons_unit_lesson_no on lessons \| Seq Scan on lesson_attempts` |
+| **R07**: Curriculum team: lessons of the Spanish course with the most mistakes per attempt (100+ attempts) | READ | 15.138 | 15.145 | 15.150 | **15.144** | `Seq Scan on lesson_attempts \| Seq Scan on lessons \| Seq Scan on units` |
+| **R08**: Product analytics: quit rate per lesson type | READ | 17.985 | 20.188 | 20.031 | **19.401** | `Seq Scan on lesson_attempts \| Seq Scan on lessons` |
 | **R09**: Growth: daily active learners in June 2026 | READ | 7.060 | 6.598 | 5.951 | **6.536** | `Seq Scan on daily_activity` |
-| **R10**: Monetisation: streak freezes used per subscription tier in 2026 | READ | 4.826 | 4.709 | 5.167 | **4.901** | `Seq Scan on daily_activity | Index Scan using learners_pkey on learners` |
+| **R10**: Monetisation: streak freezes used per subscription tier in 2026 | READ | 4.826 | 4.709 | 5.167 | **4.901** | `Seq Scan on daily_activity \| Index Scan using learners_pkey on learners` |
 | **R11**: Sign-in by username | READ | 0.030 | 0.022 | 0.023 | **0.025** | `Index Scan using learners_username_key on learners` |
-| **R12**: Profile: learner 1042's achievements, newest first | READ | 0.050 | 0.052 | 0.048 | **0.050** | `Index Scan using learner_achievements_pkey on learner_achievements | Seq Scan on achievements` |
+| **R12**: Profile: learner 1042's achievements, newest first | READ | 0.050 | 0.052 | 0.048 | **0.050** | `Index Scan using learner_achievements_pkey on learner_achievements \| Seq Scan on achievements` |
 | **R13**: Referral programme: learners who have not referred anyone yet | READ | 4.890 | 4.652 | 4.383 | **4.642** | `Seq Scan on learners` |
 | **R14**: Leagues team: promotion and demotion rates per tier over the last 4 completed weeks | READ | 1.820 | 1.781 | 1.934 | **1.845** | `Seq Scan on league_memberships` |
-| **R15**: Retention: learners who joined in January 2026 and were still active in June 2026 | READ | 1.621 | 2.278 | 1.759 | **1.886** | `Seq Scan on learners | Index Scan using daily_activity_pkey on daily_activity` |
+| **R15**: Retention: learners who joined in January 2026 and were still active in June 2026 | READ | 1.621 | 2.278 | 1.759 | **1.886** | `Seq Scan on learners \| Index Scan using daily_activity_pkey on daily_activity` |
 | **R16**: Friends: search learners by username starting with "Karan" | READ | 4.994 | 4.669 | 4.194 | **4.619** | `Index Scan using learners_username_key on learners` |
 | **R17**: Product analytics: perfect-lesson rate per device in 2026 | READ | 14.831 | 14.424 | 14.291 | **14.515** | `Seq Scan on lesson_attempts` |
-| **R18**: Course popularity: enrollments per course, and how many started in 2026 | READ | 5.673 | 5.865 | 5.649 | **5.729** | `Seq Scan on enrollments | Seq Scan on courses` |
-| **R19**: Curriculum report: completions and average mistakes of every lesson in the Spanish course | READ | 1436.567 | 1443.374 | 1433.791 | **1437.911** | `Index Scan using uq_units_course_unit_no on units | Index Scan using uq_lessons_unit_lesson_no on lessons | Seq Scan on lesson_attempts` |
+| **R18**: Course popularity: enrollments per course, and how many started in 2026 | READ | 5.673 | 5.865 | 5.649 | **5.729** | `Seq Scan on enrollments \| Seq Scan on courses` |
+| **R19**: Curriculum report: completions and average mistakes of every lesson in the Spanish course | READ | 1436.567 | 1443.374 | 1433.791 | **1437.911** | `Index Scan using uq_units_course_unit_no on units \| Index Scan using uq_lessons_unit_lesson_no on lessons \| Seq Scan on lesson_attempts` |
 | **R20**: Growth: XP earned per day across the platform and running total, June 2026 | READ | 8.715 | 8.643 | 8.396 | **8.585** | `Seq Scan on lesson_attempts` |
 | **R21**: Streak reminders: learners active every day from 23 to 29 June but not yet on 30 June | READ | 2.449 | 2.094 | 2.133 | **2.225** | `Index Only Scan using daily_activity_pkey on daily_activity` |
 | **R22**: Support console: all lesson attempts, newest first, page 4,001 (25 per page) | READ | 30.512 | 31.148 | 30.867 | **30.842** | `Seq Scan on lesson_attempts` |
-| **R23**: Monetisation: Super and Max learners in India who were active in the last 7 days of June 2026 | READ | 5.873 | 6.125 | 5.724 | **5.907** | `Seq Scan on daily_activity | Seq Scan on learners` |
-| **R24**: Curriculum team: average hearts lost per lesson, by CEFR level | READ | 22.226 | 22.597 | 22.686 | **22.503** | `Seq Scan on lesson_attempts | Seq Scan on lessons | Seq Scan on units` |
-| **R25**: Notifications team: lessons started per hour of the day, per country | READ | 111.110 | 109.342 | 111.356 | **110.603** | `Seq Scan on lesson_attempts | Seq Scan on learners` |
+| **R23**: Monetisation: Super and Max learners in India who were active in the last 7 days of June 2026 | READ | 5.873 | 6.125 | 5.724 | **5.907** | `Seq Scan on daily_activity \| Seq Scan on learners` |
+| **R24**: Curriculum team: average hearts lost per lesson, by CEFR level | READ | 22.226 | 22.597 | 22.686 | **22.503** | `Seq Scan on lesson_attempts \| Seq Scan on lessons \| Seq Scan on units` |
+| **R25**: Notifications team: lessons started per hour of the day, per country | READ | 111.110 | 109.342 | 111.356 | **110.603** | `Seq Scan on lesson_attempts \| Seq Scan on learners` |
 | **W01**: Lesson start: learner 1042 starts lesson 1 | WRITE | 1.186 | 0.545 | 0.541 | **0.757** | `(no scan)` |
 | **W02**: Lesson end: finish the most recent unfinished attempt of 30 June 2026 with 2 mistakes | WRITE | 0.852 | 0.600 | 0.569 | **0.674** | `Index Scan using lesson_attempts_pkey on lesson_attempts` |
 | **W03**: Daily activity: add 20 XP to learner 1042's 1 July 2026 (creating the row if needed) | WRITE | 0.499 | 0.397 | 0.411 | **0.436** | `(no scan)` |
 | **W04**: Weekly league close (week of 29 June 2026): rank everyone in their cohort and set promotion results | WRITE | 7.090 | 4.942 | 5.256 | **5.763** | `Seq Scan on league_memberships` |
-| **W05**: Achievements catch-up: award the "100 XP" badge to every learner who has 100+ XP but not the badge | WRITE | 45.943 | 39.348 | 33.764 | **39.685** | `Seq Scan on achievements | Seq Scan on enrollments` |
+| **W05**: Achievements catch-up: award the "100 XP" badge to every learner who has 100+ XP but not the badge | WRITE | 45.943 | 39.348 | 33.764 | **39.685** | `Seq Scan on achievements \| Seq Scan on enrollments` |
+| **Total (sum of all 30)** | — | 1,764.803 | 1,761.845 | 1,745.750 | **1,757.466** | — |
+
+### 2.1 Why each query is fast or slow
+
+- R01 (0.135 ms): units and courses are tiny catalog tables (cheap Seq Scans); lessons come from the unique composite index uq_lessons_unit_lesson_no.
+- R02 (0.040 ms): PK index lookup on enrollments for one learner; courses is tiny.
+- R03 (0.088 ms): Index Only Scan on daily_activity_pkey — no heap fetches needed.
+- R04 (5.315 ms): Seq Scan of 188,300 lesson_attempts to sum one learner's day; learner_id has no secondary index. Breaches the <5 ms SLA.
+- R05 (0.899 ms): PK-indexed cohort lookup on league_memberships plus small scans; cheap.
+- R06 (5.805 ms): Seq Scan of lesson_attempts to find the first uncompleted lesson; learner_id unindexed. Breaches the <5 ms SLA.
+- R07 (15.144 ms): full scans of lesson_attempts, lessons and units; per-lesson mistake aggregation with no index on lesson_id.
+- R08 (19.401 ms): full scan of lesson_attempts grouped per lesson type; no supporting index.
+- R09 (6.536 ms): full scan of 189,109 daily_activity rows for June dates; activity_date unindexed.
+- R10 (4.901 ms): full scan of daily_activity for 2026 freezes, joined to learners by PK.
+- R11 (0.025 ms): single-row lookup via unique index learners_username_key.
+- R12 (0.050 ms): PK index on learner_achievements for one learner; achievements is tiny.
+- R13 (4.642 ms): CORRECTNESS BUG — returns 0 rows: NOT IN over referred_by (21,102 NULLs) is never TRUE, so every learner is filtered out; the 30k-row Seq Scan is wasted.
+- R14 (1.845 ms): Seq Scan and grouping of 28,598 league_memberships; no index on week_start/tier.
+- R15 (1.886 ms): Seq Scan of 30,000 learners for January joiners; June activity checked via daily_activity PK index.
+- R16 (4.619 ms): Index range scan on learners_username_key for the "Karan%" prefix; cost is heap fetches for all matching rows.
+- R17 (14.515 ms): full scan of lesson_attempts computing perfect rate per device; no index on device.
+- R18 (5.729 ms): Seq Scans of enrollments (37,500) grouped per course; courses is tiny.
+- R19 (1,437.911 ms): two correlated subqueries re-scan 188,300 attempts for EACH of 160 lessons (plan shows loops=160, ~30M row checks); no index on lesson_id.
+- R20 (8.585 ms): full scan of lesson_attempts; grouping on started_at::date is unindexed.
+- R21 (2.225 ms): Index Only Scans of daily_activity_pkey over 8 daily ranges; covering PK keeps it cheap.
+- R22 (30.842 ms): OFFSET 100000 reads and sorts 100,025 rows then discards all but 25; deep-pagination cost.
+- R23 (5.907 ms): Seq Scans of daily_activity (7-day window) and learners (subscription/country filters).
+- R24 (22.503 ms): full scans of lesson_attempts, lessons and units for per-CEFR averages.
+- R25 (110.603 ms): 188,300 attempts joined to 30,000 learners for hour-of-day x country aggregation without indexes.
+- W01 (0.757 ms): single-row INSERT; no scan.
+- W02 (0.674 ms): PK-indexed UPDATE of one attempt row.
+- W03 (0.436 ms): single-row upsert; no scan.
+- W04 (5.763 ms): Seq Scan and re-ranking of 28,598 league_memberships for one cohort week.
+- W05 (39.685 ms): Seq Scans of enrollments (37,500) grouped per learner plus the badge anti-join.
 
 ---
 
