@@ -37,9 +37,9 @@ for f in $(ls "$TMP"/*.sql | sort -V); do
   : > "$OUT/$id.txt"
   for ((i = 1; i <= RUNS; i++)); do
     if [[ "$type" == "WRITE" ]]; then
-      sql="SET search_path TO duolingo; BEGIN; EXPLAIN (ANALYZE, BUFFERS) $query ROLLBACK;"
+      sql="SET search_path TO duolingo; SET timezone = 'Asia/Kolkata'; BEGIN; EXPLAIN (ANALYZE, BUFFERS) $query ROLLBACK;"
     else
-      sql="SET search_path TO duolingo; EXPLAIN (ANALYZE, BUFFERS) $query"
+      sql="SET search_path TO duolingo; SET timezone = 'Asia/Kolkata'; EXPLAIN (ANALYZE, BUFFERS) $query"
     fi
     plan="$(printf '%s\n' "$sql" | psql -d "$DB" -X -q -A -t -v ON_ERROR_STOP=1)"
     echo "=== $id run $i ===" >> "$OUT/$id.txt"
