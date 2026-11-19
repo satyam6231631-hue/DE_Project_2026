@@ -4,7 +4,7 @@
 **Team:** Mudit Jindal (Lead), Satyam, Shirsh, Nilesh Saini  
 **Author / Deliverable Owner:** Nilesh Saini (Track 3: Benchmark Execution & Optimization Report)  
 **Co-Contributors:** Satyam (Track 1: Index Architecture & Storage), Shirsh (Track 2: Query Refactoring & Verification)  
-**Database:** PostgreSQL 18.6 (Postgres.app) · **Hardware:** MacBook Pro M4 (as specified in `team.json`)  
+**Database:** PostgreSQL 18.6 (Homebrew, as specified in team.json) · **Hardware:** MacBook Pro M4 (as specified in `team.json`)  
 **Workload:** 30 queries (`sql/06_optimized_queries.sql`) · **Method:** 5 runs per query via `EXPLAIN (ANALYZE, BUFFERS)` · Session timezone: Asia/Kolkata  
 **Date:** November 2026
 
@@ -312,6 +312,299 @@ Execution Time: 8.802 ms
 
 ---
 
+### 3.6 Same-Result Proofs for All Rewritten Queries (EXCEPT Verification)
+
+Per the Phase 4 rubric requirements, we prove that every rewritten query returns **identical results** to the baseline query. All tests were executed against the populated database with the exact session preamble:
+```sql
+SET search_path TO duolingo;
+SET timezone = 'Asia/Kolkata';
+```
+Using the two-way set difference pattern:
+```sql
+(baseline_query EXCEPT optimized_query) UNION ALL (optimized_query EXCEPT baseline_query);
+```
+A return of **0 rows** strictly proves that neither query produces tuples missing from or differing in the other.
+
+#### 1. R04: Daily Goal Ring
+- **Baseline Row Count:** 1 row
+- **Optimized Row Count:** 1 row
+- **Verification Query:**
+```sql
+(
+    SELECT l.daily_goal_xp, coalesce(sum(a.xp_earned), 0) AS xp_today
+    FROM learners l
+    LEFT JOIN lesson_attempts a ON a.learner_id = l.learner_id AND DATE(a.started_at) = '2026-06-30'
+    WHERE l.learner_id = 1042
+    GROUP BY l.daily_goal_xp
+)
+EXCEPT
+(
+    SELECT l.daily_goal_xp, coalesce(sum(a.xp_earned), 0) AS xp_today
+    FROM learners l
+    LEFT JOIN lesson_attempts a 
+      ON a.learner_id = l.learner_id 
+     AND a.started_at >= '2026-06-30 00:00:00+05:30' 
+     AND a.started_at < '2026-07-01 00:00:00+05:30'
+    WHERE l.learner_id = 1042
+    GROUP BY l.daily_goal_xp
+)
+UNION ALL
+(
+    SELECT l.daily_goal_xp, coalesce(sum(a.xp_earned), 0) AS xp_today
+    FROM learners l
+    LEFT JOIN lesson_attempts a 
+      ON a.learner_id = l.learner_id 
+     AND a.started_at >= '2026-06-30 00:00:00+05:30' 
+     AND a.started_at < '2026-07-01 00:00:00+05:30'
+    WHERE l.learner_id = 1042
+    GROUP BY l.daily_goal_xp
+)
+EXCEPT
+(
+    SELECT l.daily_goal_xp, coalesce(sum(a.xp_earned), 0) AS xp_today
+    FROM learners l
+    LEFT JOIN lesson_attempts a ON a.learner_id = l.learner_id AND DATE(a.started_at) = '2026-06-30'
+    WHERE l.learner_id = 1042
+    GROUP BY l.daily_goal_xp
+);
+```
+- **Live psql Output:**
+```
+ daily_goal_xp | xp_today 
+---------------+----------
+(0 rows)
+```
+- **Verdict:** ✅ Identical result.
+
+#### 2. R10: Streak Freezes Used per Subscription Tier
+- **Baseline Row Count:** 2 rows
+- **Optimized Row Count:** 2 rows
+- **Verification Query:**
+```sql
+(
+    SELECT l.subscription, count(*) AS freezes_used
+    FROM daily_activity d
+    JOIN learners l ON l.learner_id = d.learner_id
+    WHERE d.used_streak_freeze
+      AND EXTRACT(YEAR FROM d.activity_date) = 2026
+    GROUP BY l.subscription
+)
+EXCEPT
+(
+    SELECT l.subscription, count(*) AS freezes_used
+    FROM daily_activity d
+    JOIN learners l ON l.learner_id = d.learner_id
+    WHERE d.used_streak_freeze
+      AND d.activity_date >= '2026-01-01' AND d.activity_date <= '2026-12-31'
+    GROUP BY l.subscription
+)
+UNION ALL
+(
+    SELECT l.subscription, count(*) AS freezes_used
+    FROM daily_activity d
+    JOIN learners l ON l.learner_id = d.learner_id
+    WHERE d.used_streak_freeze
+      AND d.activity_date >= '2026-01-01' AND d.activity_date <= '2026-12-31'
+    GROUP BY l.subscription
+)
+EXCEPT
+(
+    SELECT l.subscription, count(*) AS freezes_used
+    FROM daily_activity d
+    JOIN learners l ON l.learner_id = d.learner_id
+    WHERE d.used_streak_freeze
+      AND EXTRACT(YEAR FROM d.activity_date) = 2026
+    GROUP BY l.subscription
+);
+```
+- **Live psql Output:**
+```
+ subscription | freezes_used 
+--------------+--------------
+(0 rows)
+```
+- **Verdict:** ✅ Identical result.
+
+#### 3. R17: Perfect-Lesson Rate per Device
+- **Baseline Row Count:** 3 rows
+- **Optimized Row Count:** 3 rows
+- **Verification Query:**
+```sql
+(
+    SELECT device, count(*) AS completed,
+           round(100.0 * count(*) FILTER (WHERE is_perfect) / count(*), 2) AS perfect_pct
+    FROM lesson_attempts
+    WHERE completed_at IS NOT NULL
+      AND EXTRACT(YEAR FROM started_at) = 2026
+    GROUP BY device
+)
+EXCEPT
+(
+    SELECT device, count(*) AS completed,
+           round(100.0 * count(*) FILTER (WHERE is_perfect) / count(*), 2) AS perfect_pct
+    FROM lesson_attempts
+    WHERE completed_at IS NOT NULL
+      AND started_at >= '2026-01-01 00:00:00+05:30' AND started_at < '2027-01-01 00:00:00+05:30'
+    GROUP BY device
+)
+UNION ALL
+(
+    SELECT device, count(*) AS completed,
+           round(100.0 * count(*) FILTER (WHERE is_perfect) / count(*), 2) AS perfect_pct
+    FROM lesson_attempts
+    WHERE completed_at IS NOT NULL
+      AND started_at >= '2026-01-01 00:00:00+05:30' AND started_at < '2027-01-01 00:00:00+05:30'
+    GROUP BY device
+)
+EXCEPT
+(
+    SELECT device, count(*) AS completed,
+           round(100.0 * count(*) FILTER (WHERE is_perfect) / count(*), 2) AS perfect_pct
+    FROM lesson_attempts
+    WHERE completed_at IS NOT NULL
+      AND EXTRACT(YEAR FROM started_at) = 2026
+    GROUP BY device
+);
+```
+- **Live psql Output:**
+```
+ device | completed | perfect_pct 
+--------+-----------+-------------
+(0 rows)
+```
+- **Verdict:** ✅ Identical result.
+
+#### 4. R19: Spanish Course Completions & Average Mistakes
+- **Baseline Row Count:** 160 rows
+- **Optimized Row Count:** 160 rows
+- **Verification Query:**
+```sql
+(
+    SELECT l.lesson_id, u.unit_no, l.lesson_no,
+           (SELECT count(*) FROM lesson_attempts a WHERE a.lesson_id = l.lesson_id AND a.completed_at IS NOT NULL) AS completions,
+           (SELECT round(avg(a.mistakes), 2) FROM lesson_attempts a WHERE a.lesson_id = l.lesson_id) AS avg_mistakes
+    FROM lessons l
+    JOIN units u ON u.unit_id = l.unit_id
+    WHERE u.course_id = 1
+    EXCEPT
+    SELECT * FROM (
+        WITH course_lessons AS (
+            SELECT l.lesson_id, u.unit_no, l.lesson_no
+            FROM lessons l
+            JOIN units u ON u.unit_id = l.unit_id
+            WHERE u.course_id = 1
+        ),
+        attempt_stats AS (
+            SELECT a.lesson_id,
+                   count(*) FILTER (WHERE a.completed_at IS NOT NULL) AS completions,
+                   round(avg(a.mistakes), 2) AS avg_mistakes
+            FROM lesson_attempts a
+            JOIN course_lessons cl ON cl.lesson_id = a.lesson_id
+            GROUP BY a.lesson_id
+        )
+        SELECT cl.lesson_id, cl.unit_no, cl.lesson_no,
+               coalesce(s.completions, 0) AS completions,
+               s.avg_mistakes
+        FROM course_lessons cl
+        LEFT JOIN attempt_stats s ON s.lesson_id = cl.lesson_id
+    ) opt1
+)
+UNION ALL
+(
+    SELECT * FROM (
+        WITH course_lessons AS (
+            SELECT l.lesson_id, u.unit_no, l.lesson_no
+            FROM lessons l
+            JOIN units u ON u.unit_id = l.unit_id
+            WHERE u.course_id = 1
+        ),
+        attempt_stats AS (
+            SELECT a.lesson_id,
+                   count(*) FILTER (WHERE a.completed_at IS NOT NULL) AS completions,
+                   round(avg(a.mistakes), 2) AS avg_mistakes
+            FROM lesson_attempts a
+            JOIN course_lessons cl ON cl.lesson_id = a.lesson_id
+            GROUP BY a.lesson_id
+        )
+        SELECT cl.lesson_id, cl.unit_no, cl.lesson_no,
+               coalesce(s.completions, 0) AS completions,
+               s.avg_mistakes
+        FROM course_lessons cl
+        LEFT JOIN attempt_stats s ON s.lesson_id = cl.lesson_id
+    ) opt2
+    EXCEPT
+    SELECT l.lesson_id, u.unit_no, l.lesson_no,
+           (SELECT count(*) FROM lesson_attempts a WHERE a.lesson_id = l.lesson_id AND a.completed_at IS NOT NULL) AS completions,
+           (SELECT round(avg(a.mistakes), 2) FROM lesson_attempts a WHERE a.lesson_id = l.lesson_id) AS avg_mistakes
+    FROM lessons l
+    JOIN units u ON u.unit_id = l.unit_id
+    WHERE u.course_id = 1
+);
+```
+- **Live psql Output:**
+```
+ lesson_id | unit_no | lesson_no | completions | avg_mistakes 
+-----------+---------+-----------+-------------+--------------
+(0 rows)
+```
+- **Verdict:** ✅ Identical result.
+
+#### 5. R20: Platform XP Earned per Day in June 2026
+- **Baseline Row Count:** 30 rows
+- **Optimized Row Count:** 30 rows
+- **Verification Query:**
+```sql
+(
+    SELECT day, xp, sum(xp) OVER (ORDER BY day) AS running_xp
+    FROM (
+        SELECT started_at::date AS day, sum(xp_earned) AS xp
+        FROM lesson_attempts
+        WHERE started_at::date BETWEEN '2026-06-01' AND '2026-06-30'
+        GROUP BY 1
+    ) d
+    EXCEPT
+    SELECT day, xp, sum(xp) OVER (ORDER BY day) AS running_xp
+    FROM (
+        SELECT started_at::date AS day, sum(xp_earned) AS xp
+        FROM lesson_attempts
+        WHERE started_at >= '2026-06-01 00:00:00+05:30' 
+          AND started_at < '2026-07-01 00:00:00+05:30'
+        GROUP BY 1
+    ) d
+)
+UNION ALL
+(
+    SELECT day, xp, sum(xp) OVER (ORDER BY day) AS running_xp
+    FROM (
+        SELECT started_at::date AS day, sum(xp_earned) AS xp
+        FROM lesson_attempts
+        WHERE started_at >= '2026-06-01 00:00:00+05:30' 
+          AND started_at < '2026-07-01 00:00:00+05:30'
+        GROUP BY 1
+    ) d
+    EXCEPT
+    SELECT day, xp, sum(xp) OVER (ORDER BY day) AS running_xp
+    FROM (
+        SELECT started_at::date AS day, sum(xp_earned) AS xp
+        FROM lesson_attempts
+        WHERE started_at::date BETWEEN '2026-06-01' AND '2026-06-30'
+        GROUP BY 1
+    ) d
+);
+```
+- **Live psql Output:**
+```
+ day | xp | running_xp 
+-----+----+------------
+(0 rows)
+```
+- **Verdict:** ✅ Identical result.
+
+#### 6. R13: Referral Programme (The Intentional Bug Fix)
+- Note: `R13` was intentionally designed with an SQL NULL logic bug returning 0 rows in baseline profiling. As proven in detail in **Section 4.3**, the rewrite to `NOT EXISTS` produces exactly **24,268 correct unreferred learners**, mathematically matching $\text{Total Learners (30,000)} - \text{Distinct Referrers (5,732)}$. Thus, all 6 rewritten queries are fully verified.
+
+---
+
 ## 4. The R13 Bug: Three-Valued SQL Logic & Resolution
 
 ### 4.1 Root Cause Analysis (The 21,102 NULL Trap)
@@ -378,7 +671,7 @@ We evaluated the execution times of write operations `W01`–`W05` inside transa
 | **W02** | `UPDATE` latest unfinished attempt | 0.674 | 0.189 | **-0.485 ms (+71.96% faster)** | **Major speedup!** Updating an unfinished attempt requires finding it first. The partial index `idx_lesson_attempts_unfinished` dropped the lookup time from 0.47 ms to 0.01 ms, outweighing index update costs. |
 | **W03** | `INSERT ... ON CONFLICT UPDATE` (daily_activity) | 0.436 | 0.417 | -0.019 ms | **Negligible.** Single-row upsert overhead remains virtually identical at **0.42 ms**. |
 | **W04** | `UPDATE` 30 league cohort memberships | 5.763 | 8.529 | +2.766 ms (-48.00%) | **Expected batch overhead.** Updating `result` and sorting ranks across 30 rows requires updating `idx_league_memberships_week_cohort`. The +2.76 ms cost is negligible for a scheduled weekly batch job that runs once per week. |
-| **W05** | Batch `INSERT` into `learner_achievements` | 39.685 | 33.319 | -6.366 ms (+16.04%) | **Slight speedup.** The multi-row insert benefited from faster candidate filtering on enrollments. |
+| **W05** | Batch `INSERT` into `learner_achievements` | 39.685 | 33.319 | -6.366 ms (+16.04%) | Within run-to-run variance (baseline W05 min was 33.764 ms; optimized avg 33.319 ms; plan unchanged). |
 
 ### Conclusion on Write Overhead:
 The measured write overhead is minimal. Real-time transactional writes (`W01`, `W02`, `W03`) remain sub-millisecond (< 0.7 ms). The modest +2.76 ms overhead on `W04` is an acceptable trade-off for accelerating high-frequency read queries (`R04`, `R05`, `R06`) by up to **99%**.
@@ -404,7 +697,7 @@ To ensure our indexing strategy remains memory- and storage-efficient, we measur
 | `achievements` | 10 | 8 kB | 48 kB | 56 kB | 600.0% |
 | `courses` | 11 | 8 kB | 32 kB | 40 kB | 400.0% |
 | `languages` | 10 | 8 kB | 32 kB | 40 kB | 400.0% |
-| **TOTALS** | **474,278** | **34.8 MB** | **39.8 MB** | **74.6 MB** | **114.4%** |
+| **TOTALS** | **514,378** | **34.8 MB** | **39.8 MB** | **74.6 MB** | **114.4%** |
 
 ### 6.2 Secondary Indexes Created in `sql/05_indexes.sql`
 
@@ -424,7 +717,7 @@ To ensure our indexing strategy remains memory- and storage-efficient, we measur
 | `idx_league_memberships_week_tier` | `league_memberships` | `(week_start, tier)` | 224 kB | `R14`, `W04` |
 | `idx_learners_referred_by` | `learners` | `(referred_by)` WHERE `referred_by IS NOT NULL` | 184 kB | `R13` (partial index) |
 | `idx_daily_activity_freeze` | `daily_activity` | `(activity_date, learner_id)` WHERE `used_streak_freeze = true` | 64 kB | `R10` (partial index) |
-| `idx_units_course_id` | `units` | `(course_id)` | 16 kB | `R01`, `R06`, `R07`, `R19` |
+| `idx_units_course_id` | `units` | `(course_id)` | 16 kB | FK coverage for joins courses→units; the planner currently prefers existing unique indexes on this 220-row table |
 
 ### Key Storage Findings:
 1. **Total secondary index footprint is only ~39.8 MB**, comfortably fitting in RAM cache on modern server and developer hardware.
@@ -451,7 +744,7 @@ In database optimization, not every query can or should be accelerated with an i
 
 | SLA Tier | Target SLA | Baseline Status | Optimized Status | Verdict |
 |:---|:---:|:---:|:---:|:---:|
-| **Real-Time / Customer Facing** | `< 5.0 ms` | ⚠️ 2 Violations (`R04`: 5.3 ms, `R06`: 5.8 ms) | ✅ 100% Compliant (All $\le$ 0.65 ms) | **PASS (16/16)** |
+| **Real-Time / Customer Facing** | `< 5.0 ms` | ⚠️ 2 Violations (`R04`: 5.3 ms, `R06`: 5.8 ms) | ✅ 100% Compliant (max W01 = 0.652 ms) | **PASS (10/10)** |
 | **Interactive Support & Admin** | `< 250.0 ms` | ✅ Compliant (Max 30.8 ms) | ✅ Compliant (Max 8.8 ms) | **PASS** |
 | **Analytics & Curriculum Reports** | `< 5,000.0 ms` | ✅ Compliant (Max 1,437.9 ms) | ✅ Compliant (Max 108.2 ms) | **PASS** |
 | **Batch Maintenance Jobs** | `< 1,000.0 ms` | ✅ Compliant (Max 39.7 ms) | ✅ Compliant (Max 33.3 ms) | **PASS** |

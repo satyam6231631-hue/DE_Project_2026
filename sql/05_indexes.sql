@@ -120,7 +120,6 @@ CREATE INDEX IF NOT EXISTS idx_learners_referred_by
 -- 6. Table: units (220 rows)
 -- ---------------------------------------------------------------------
 
--- Accelerates R01, R06, R07, R19, R24
--- Why: Foreign key index on course_id for fast joins from courses to units.
+-- FK coverage for joins courses→units; the planner currently prefers existing unique indexes on this 220-row table
 CREATE INDEX IF NOT EXISTS idx_units_course_id 
     ON units (course_id);
