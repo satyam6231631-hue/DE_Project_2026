@@ -1,0 +1,110 @@
+=== R25 run 1 ===
+GroupAggregate  (cost=27564.70..31801.45 rows=188300 width=43) (actual time=80.865..107.740 rows=120.00 loops=1)
+  Group Key: le.country_code, (EXTRACT(hour FROM a.started_at))
+  Buffers: shared hit=2398, temp read=414 written=416
+  ->  Sort  (cost=27564.70..28035.45 rows=188300 width=35) (actual time=80.758..97.254 rows=188300.00 loops=1)
+        Sort Key: le.country_code, (EXTRACT(hour FROM a.started_at))
+        Sort Method: external merge  Disk: 3312kB
+        Buffers: shared hit=2398, temp read=414 written=416
+        ->  Hash Join  (cost=1075.00..5915.10 rows=188300 width=35) (actual time=3.220..30.944 rows=188300.00 loops=1)
+              Hash Cond: (a.learner_id = le.learner_id)
+              Buffers: shared hit=2392
+              ->  Seq Scan on lesson_attempts a  (cost=0.00..3875.00 rows=188300 width=12) (actual time=0.003..5.335 rows=188300.00 loops=1)
+                    Buffers: shared hit=1992
+              ->  Hash  (cost=700.00..700.00 rows=30000 width=7) (actual time=2.803..2.803 rows=30000.00 loops=1)
+                    Buckets: 32768  Batches: 1  Memory Usage: 1428kB
+                    Buffers: shared hit=400
+                    ->  Seq Scan on learners le  (cost=0.00..700.00 rows=30000 width=7) (actual time=0.002..1.489 rows=30000.00 loops=1)
+                          Buffers: shared hit=400
+Planning:
+  Buffers: shared hit=412 read=3
+Planning Time: 0.619 ms
+Execution Time: 108.465 ms
+=== R25 run 2 ===
+GroupAggregate  (cost=27564.70..31801.45 rows=188300 width=43) (actual time=79.373..105.603 rows=120.00 loops=1)
+  Group Key: le.country_code, (EXTRACT(hour FROM a.started_at))
+  Buffers: shared hit=2398, temp read=414 written=416
+  ->  Sort  (cost=27564.70..28035.45 rows=188300 width=35) (actual time=79.271..96.317 rows=188300.00 loops=1)
+        Sort Key: le.country_code, (EXTRACT(hour FROM a.started_at))
+        Sort Method: external merge  Disk: 3312kB
+        Buffers: shared hit=2398, temp read=414 written=416
+        ->  Hash Join  (cost=1075.00..5915.10 rows=188300 width=35) (actual time=2.493..30.405 rows=188300.00 loops=1)
+              Hash Cond: (a.learner_id = le.learner_id)
+              Buffers: shared hit=2392
+              ->  Seq Scan on lesson_attempts a  (cost=0.00..3875.00 rows=188300 width=12) (actual time=0.003..5.344 rows=188300.00 loops=1)
+                    Buffers: shared hit=1992
+              ->  Hash  (cost=700.00..700.00 rows=30000 width=7) (actual time=2.459..2.459 rows=30000.00 loops=1)
+                    Buckets: 32768  Batches: 1  Memory Usage: 1428kB
+                    Buffers: shared hit=400
+                    ->  Seq Scan on learners le  (cost=0.00..700.00 rows=30000 width=7) (actual time=0.002..1.326 rows=30000.00 loops=1)
+                          Buffers: shared hit=400
+Planning:
+  Buffers: shared hit=415
+Planning Time: 0.567 ms
+Execution Time: 106.459 ms
+=== R25 run 3 ===
+GroupAggregate  (cost=27564.70..31801.45 rows=188300 width=43) (actual time=80.879..108.372 rows=120.00 loops=1)
+  Group Key: le.country_code, (EXTRACT(hour FROM a.started_at))
+  Buffers: shared hit=2398, temp read=414 written=416
+  ->  Sort  (cost=27564.70..28035.45 rows=188300 width=35) (actual time=80.778..98.107 rows=188300.00 loops=1)
+        Sort Key: le.country_code, (EXTRACT(hour FROM a.started_at))
+        Sort Method: external merge  Disk: 3312kB
+        Buffers: shared hit=2398, temp read=414 written=416
+        ->  Hash Join  (cost=1075.00..5915.10 rows=188300 width=35) (actual time=2.656..30.442 rows=188300.00 loops=1)
+              Hash Cond: (a.learner_id = le.learner_id)
+              Buffers: shared hit=2392
+              ->  Seq Scan on lesson_attempts a  (cost=0.00..3875.00 rows=188300 width=12) (actual time=0.004..5.413 rows=188300.00 loops=1)
+                    Buffers: shared hit=1992
+              ->  Hash  (cost=700.00..700.00 rows=30000 width=7) (actual time=2.631..2.631 rows=30000.00 loops=1)
+                    Buckets: 32768  Batches: 1  Memory Usage: 1428kB
+                    Buffers: shared hit=400
+                    ->  Seq Scan on learners le  (cost=0.00..700.00 rows=30000 width=7) (actual time=0.002..1.422 rows=30000.00 loops=1)
+                          Buffers: shared hit=400
+Planning:
+  Buffers: shared hit=415
+Planning Time: 0.576 ms
+Execution Time: 109.341 ms
+=== R25 run 4 ===
+GroupAggregate  (cost=27564.70..31801.45 rows=188300 width=43) (actual time=81.402..108.334 rows=120.00 loops=1)
+  Group Key: le.country_code, (EXTRACT(hour FROM a.started_at))
+  Buffers: shared hit=2398, temp read=414 written=416
+  ->  Sort  (cost=27564.70..28035.45 rows=188300 width=35) (actual time=81.298..99.019 rows=188300.00 loops=1)
+        Sort Key: le.country_code, (EXTRACT(hour FROM a.started_at))
+        Sort Method: external merge  Disk: 3312kB
+        Buffers: shared hit=2398, temp read=414 written=416
+        ->  Hash Join  (cost=1075.00..5915.10 rows=188300 width=35) (actual time=2.575..30.585 rows=188300.00 loops=1)
+              Hash Cond: (a.learner_id = le.learner_id)
+              Buffers: shared hit=2392
+              ->  Seq Scan on lesson_attempts a  (cost=0.00..3875.00 rows=188300 width=12) (actual time=0.003..5.435 rows=188300.00 loops=1)
+                    Buffers: shared hit=1992
+              ->  Hash  (cost=700.00..700.00 rows=30000 width=7) (actual time=2.549..2.550 rows=30000.00 loops=1)
+                    Buckets: 32768  Batches: 1  Memory Usage: 1428kB
+                    Buffers: shared hit=400
+                    ->  Seq Scan on learners le  (cost=0.00..700.00 rows=30000 width=7) (actual time=0.002..1.341 rows=30000.00 loops=1)
+                          Buffers: shared hit=400
+Planning:
+  Buffers: shared hit=415
+Planning Time: 0.558 ms
+Execution Time: 108.977 ms
+=== R25 run 5 ===
+GroupAggregate  (cost=27564.70..31801.45 rows=188300 width=43) (actual time=80.836..106.875 rows=120.00 loops=1)
+  Group Key: le.country_code, (EXTRACT(hour FROM a.started_at))
+  Buffers: shared hit=2398, temp read=414 written=416
+  ->  Sort  (cost=27564.70..28035.45 rows=188300 width=35) (actual time=80.736..97.379 rows=188300.00 loops=1)
+        Sort Key: le.country_code, (EXTRACT(hour FROM a.started_at))
+        Sort Method: external merge  Disk: 3312kB
+        Buffers: shared hit=2398, temp read=414 written=416
+        ->  Hash Join  (cost=1075.00..5915.10 rows=188300 width=35) (actual time=2.627..30.474 rows=188300.00 loops=1)
+              Hash Cond: (a.learner_id = le.learner_id)
+              Buffers: shared hit=2392
+              ->  Seq Scan on lesson_attempts a  (cost=0.00..3875.00 rows=188300 width=12) (actual time=0.004..5.407 rows=188300.00 loops=1)
+                    Buffers: shared hit=1992
+              ->  Hash  (cost=700.00..700.00 rows=30000 width=7) (actual time=2.600..2.600 rows=30000.00 loops=1)
+                    Buckets: 32768  Batches: 1  Memory Usage: 1428kB
+                    Buffers: shared hit=400
+                    ->  Seq Scan on learners le  (cost=0.00..700.00 rows=30000 width=7) (actual time=0.002..1.373 rows=30000.00 loops=1)
+                          Buffers: shared hit=400
+Planning:
+  Buffers: shared hit=415
+Planning Time: 0.661 ms
+Execution Time: 107.865 ms

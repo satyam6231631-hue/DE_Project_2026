@@ -1,0 +1,50 @@
+=== R22 run 1 ===
+Limit  (cost=3666.15..3667.06 rows=25 width=28) (actual time=9.034..9.036 rows=25.00 loops=1)
+  Buffers: shared hit=10017 read=88
+  ->  Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.42..6902.98 rows=188300 width=28) (actual time=0.007..7.414 rows=100025.00 loops=1)
+        Index Searches: 1
+        Buffers: shared hit=10017 read=88
+Planning:
+  Buffers: shared hit=207
+Planning Time: 0.360 ms
+Execution Time: 9.048 ms
+=== R22 run 2 ===
+Limit  (cost=3666.15..3667.06 rows=25 width=28) (actual time=8.969..8.972 rows=25.00 loops=1)
+  Buffers: shared hit=10105
+  ->  Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.42..6902.98 rows=188300 width=28) (actual time=0.007..7.271 rows=100025.00 loops=1)
+        Index Searches: 1
+        Buffers: shared hit=10105
+Planning:
+  Buffers: shared hit=207
+Planning Time: 0.404 ms
+Execution Time: 8.983 ms
+=== R22 run 3 ===
+Limit  (cost=3666.15..3667.06 rows=25 width=28) (actual time=8.654..8.656 rows=25.00 loops=1)
+  Buffers: shared hit=10105
+  ->  Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.42..6902.98 rows=188300 width=28) (actual time=0.006..7.014 rows=100025.00 loops=1)
+        Index Searches: 1
+        Buffers: shared hit=10105
+Planning:
+  Buffers: shared hit=207
+Planning Time: 0.313 ms
+Execution Time: 8.667 ms
+=== R22 run 4 ===
+Limit  (cost=3666.15..3667.06 rows=25 width=28) (actual time=8.558..8.560 rows=25.00 loops=1)
+  Buffers: shared hit=10105
+  ->  Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.42..6902.98 rows=188300 width=28) (actual time=0.006..6.951 rows=100025.00 loops=1)
+        Index Searches: 1
+        Buffers: shared hit=10105
+Planning:
+  Buffers: shared hit=207
+Planning Time: 0.318 ms
+Execution Time: 8.571 ms
+=== R22 run 5 ===
+Limit  (cost=3666.15..3667.06 rows=25 width=28) (actual time=8.728..8.730 rows=25.00 loops=1)
+  Buffers: shared hit=10105
+  ->  Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.42..6902.98 rows=188300 width=28) (actual time=0.006..7.113 rows=100025.00 loops=1)
+        Index Searches: 1
+        Buffers: shared hit=10105
+Planning:
+  Buffers: shared hit=207
+Planning Time: 0.312 ms
+Execution Time: 8.739 ms
