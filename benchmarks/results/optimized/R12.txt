@@ -1,0 +1,95 @@
+=== R12 run 1 ===
+Sort  (cost=9.54..9.55 rows=1 width=29) (actual time=0.017..0.017 rows=4.00 loops=1)
+  Sort Key: la.earned_at DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=10
+  ->  Nested Loop  (cost=0.29..9.53 rows=1 width=29) (actual time=0.008..0.011 rows=4.00 loops=1)
+        Join Filter: (la.achievement_id = a.achievement_id)
+        Rows Removed by Join Filter: 12
+        Buffers: shared hit=7
+        ->  Index Scan using learner_achievements_pkey on learner_achievements la  (cost=0.29..8.31 rows=1 width=12) (actual time=0.004..0.005 rows=4.00 loops=1)
+              Index Cond: (learner_id = 1042)
+              Index Searches: 1
+              Buffers: shared hit=3
+        ->  Seq Scan on achievements a  (cost=0.00..1.10 rows=10 width=25) (actual time=0.001..0.001 rows=4.00 loops=4)
+              Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=250
+Planning Time: 0.344 ms
+Execution Time: 0.036 ms
+=== R12 run 2 ===
+Sort  (cost=9.54..9.55 rows=1 width=29) (actual time=0.021..0.022 rows=4.00 loops=1)
+  Sort Key: la.earned_at DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=10
+  ->  Nested Loop  (cost=0.29..9.53 rows=1 width=29) (actual time=0.012..0.015 rows=4.00 loops=1)
+        Join Filter: (la.achievement_id = a.achievement_id)
+        Rows Removed by Join Filter: 12
+        Buffers: shared hit=7
+        ->  Index Scan using learner_achievements_pkey on learner_achievements la  (cost=0.29..8.31 rows=1 width=12) (actual time=0.004..0.005 rows=4.00 loops=1)
+              Index Cond: (learner_id = 1042)
+              Index Searches: 1
+              Buffers: shared hit=3
+        ->  Seq Scan on achievements a  (cost=0.00..1.10 rows=10 width=25) (actual time=0.002..0.002 rows=4.00 loops=4)
+              Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=248
+Planning Time: 0.313 ms
+Execution Time: 0.040 ms
+=== R12 run 3 ===
+Sort  (cost=9.54..9.55 rows=1 width=29) (actual time=0.017..0.018 rows=4.00 loops=1)
+  Sort Key: la.earned_at DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=10
+  ->  Nested Loop  (cost=0.29..9.53 rows=1 width=29) (actual time=0.008..0.011 rows=4.00 loops=1)
+        Join Filter: (la.achievement_id = a.achievement_id)
+        Rows Removed by Join Filter: 12
+        Buffers: shared hit=7
+        ->  Index Scan using learner_achievements_pkey on learner_achievements la  (cost=0.29..8.31 rows=1 width=12) (actual time=0.004..0.005 rows=4.00 loops=1)
+              Index Cond: (learner_id = 1042)
+              Index Searches: 1
+              Buffers: shared hit=3
+        ->  Seq Scan on achievements a  (cost=0.00..1.10 rows=10 width=25) (actual time=0.001..0.001 rows=4.00 loops=4)
+              Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=248
+Planning Time: 0.299 ms
+Execution Time: 0.036 ms
+=== R12 run 4 ===
+Sort  (cost=9.54..9.55 rows=1 width=29) (actual time=0.017..0.017 rows=4.00 loops=1)
+  Sort Key: la.earned_at DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=10
+  ->  Nested Loop  (cost=0.29..9.53 rows=1 width=29) (actual time=0.008..0.010 rows=4.00 loops=1)
+        Join Filter: (la.achievement_id = a.achievement_id)
+        Rows Removed by Join Filter: 12
+        Buffers: shared hit=7
+        ->  Index Scan using learner_achievements_pkey on learner_achievements la  (cost=0.29..8.31 rows=1 width=12) (actual time=0.004..0.005 rows=4.00 loops=1)
+              Index Cond: (learner_id = 1042)
+              Index Searches: 1
+              Buffers: shared hit=3
+        ->  Seq Scan on achievements a  (cost=0.00..1.10 rows=10 width=25) (actual time=0.001..0.001 rows=4.00 loops=4)
+              Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=248
+Planning Time: 0.295 ms
+Execution Time: 0.036 ms
+=== R12 run 5 ===
+Sort  (cost=9.54..9.55 rows=1 width=29) (actual time=0.020..0.021 rows=4.00 loops=1)
+  Sort Key: la.earned_at DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=10
+  ->  Nested Loop  (cost=0.29..9.53 rows=1 width=29) (actual time=0.009..0.013 rows=4.00 loops=1)
+        Join Filter: (la.achievement_id = a.achievement_id)
+        Rows Removed by Join Filter: 12
+        Buffers: shared hit=7
+        ->  Index Scan using learner_achievements_pkey on learner_achievements la  (cost=0.29..8.31 rows=1 width=12) (actual time=0.005..0.005 rows=4.00 loops=1)
+              Index Cond: (learner_id = 1042)
+              Index Searches: 1
+              Buffers: shared hit=3
+        ->  Seq Scan on achievements a  (cost=0.00..1.10 rows=10 width=25) (actual time=0.001..0.001 rows=4.00 loops=4)
+              Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=248
+Planning Time: 0.317 ms
+Execution Time: 0.040 ms

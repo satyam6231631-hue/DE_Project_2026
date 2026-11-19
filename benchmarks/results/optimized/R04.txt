@@ -1,0 +1,110 @@
+=== R04 run 1 ===
+GroupAggregate  (cost=16.77..16.79 rows=1 width=12) (actual time=0.030..0.030 rows=1.00 loops=1)
+  Group Key: l.daily_goal_xp
+  Buffers: shared hit=7 read=3
+  ->  Sort  (cost=16.77..16.77 rows=1 width=8) (actual time=0.026..0.026 rows=1.00 loops=1)
+        Sort Key: l.daily_goal_xp
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=7 read=3
+        ->  Nested Loop Left Join  (cost=0.71..16.76 rows=1 width=8) (actual time=0.019..0.019 rows=1.00 loops=1)
+              Buffers: shared hit=4 read=3
+              ->  Index Scan using learners_pkey on learners l  (cost=0.29..8.30 rows=1 width=8) (actual time=0.005..0.005 rows=1.00 loops=1)
+                    Index Cond: (learner_id = 1042)
+                    Index Searches: 1
+                    Buffers: shared hit=3
+              ->  Index Scan using idx_lesson_attempts_learner_started on lesson_attempts a  (cost=0.42..8.44 rows=1 width=8) (actual time=0.013..0.014 rows=1.00 loops=1)
+                    Index Cond: ((learner_id = 1042) AND (started_at >= '2026-06-30 00:00:00+05:30'::timestamp with time zone) AND (started_at < '2026-07-01 00:00:00+05:30'::timestamp with time zone))
+                    Index Searches: 1
+                    Buffers: shared hit=1 read=3
+Planning:
+  Buffers: shared hit=318 read=12
+Planning Time: 0.703 ms
+Execution Time: 0.053 ms
+=== R04 run 2 ===
+GroupAggregate  (cost=16.77..16.79 rows=1 width=12) (actual time=0.021..0.021 rows=1.00 loops=1)
+  Group Key: l.daily_goal_xp
+  Buffers: shared hit=10
+  ->  Sort  (cost=16.77..16.77 rows=1 width=8) (actual time=0.017..0.017 rows=1.00 loops=1)
+        Sort Key: l.daily_goal_xp
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=10
+        ->  Nested Loop Left Join  (cost=0.71..16.76 rows=1 width=8) (actual time=0.011..0.011 rows=1.00 loops=1)
+              Buffers: shared hit=7
+              ->  Index Scan using learners_pkey on learners l  (cost=0.29..8.30 rows=1 width=8) (actual time=0.004..0.004 rows=1.00 loops=1)
+                    Index Cond: (learner_id = 1042)
+                    Index Searches: 1
+                    Buffers: shared hit=3
+              ->  Index Scan using idx_lesson_attempts_learner_started on lesson_attempts a  (cost=0.42..8.44 rows=1 width=8) (actual time=0.005..0.006 rows=1.00 loops=1)
+                    Index Cond: ((learner_id = 1042) AND (started_at >= '2026-06-30 00:00:00+05:30'::timestamp with time zone) AND (started_at < '2026-07-01 00:00:00+05:30'::timestamp with time zone))
+                    Index Searches: 1
+                    Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=326
+Planning Time: 0.572 ms
+Execution Time: 0.043 ms
+=== R04 run 3 ===
+GroupAggregate  (cost=16.77..16.79 rows=1 width=12) (actual time=0.022..0.022 rows=1.00 loops=1)
+  Group Key: l.daily_goal_xp
+  Buffers: shared hit=10
+  ->  Sort  (cost=16.77..16.77 rows=1 width=8) (actual time=0.018..0.018 rows=1.00 loops=1)
+        Sort Key: l.daily_goal_xp
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=10
+        ->  Nested Loop Left Join  (cost=0.71..16.76 rows=1 width=8) (actual time=0.011..0.012 rows=1.00 loops=1)
+              Buffers: shared hit=7
+              ->  Index Scan using learners_pkey on learners l  (cost=0.29..8.30 rows=1 width=8) (actual time=0.005..0.005 rows=1.00 loops=1)
+                    Index Cond: (learner_id = 1042)
+                    Index Searches: 1
+                    Buffers: shared hit=3
+              ->  Index Scan using idx_lesson_attempts_learner_started on lesson_attempts a  (cost=0.42..8.44 rows=1 width=8) (actual time=0.006..0.006 rows=1.00 loops=1)
+                    Index Cond: ((learner_id = 1042) AND (started_at >= '2026-06-30 00:00:00+05:30'::timestamp with time zone) AND (started_at < '2026-07-01 00:00:00+05:30'::timestamp with time zone))
+                    Index Searches: 1
+                    Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=326
+Planning Time: 0.612 ms
+Execution Time: 0.045 ms
+=== R04 run 4 ===
+GroupAggregate  (cost=16.77..16.79 rows=1 width=12) (actual time=0.021..0.021 rows=1.00 loops=1)
+  Group Key: l.daily_goal_xp
+  Buffers: shared hit=10
+  ->  Sort  (cost=16.77..16.77 rows=1 width=8) (actual time=0.017..0.017 rows=1.00 loops=1)
+        Sort Key: l.daily_goal_xp
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=10
+        ->  Nested Loop Left Join  (cost=0.71..16.76 rows=1 width=8) (actual time=0.011..0.011 rows=1.00 loops=1)
+              Buffers: shared hit=7
+              ->  Index Scan using learners_pkey on learners l  (cost=0.29..8.30 rows=1 width=8) (actual time=0.005..0.005 rows=1.00 loops=1)
+                    Index Cond: (learner_id = 1042)
+                    Index Searches: 1
+                    Buffers: shared hit=3
+              ->  Index Scan using idx_lesson_attempts_learner_started on lesson_attempts a  (cost=0.42..8.44 rows=1 width=8) (actual time=0.005..0.006 rows=1.00 loops=1)
+                    Index Cond: ((learner_id = 1042) AND (started_at >= '2026-06-30 00:00:00+05:30'::timestamp with time zone) AND (started_at < '2026-07-01 00:00:00+05:30'::timestamp with time zone))
+                    Index Searches: 1
+                    Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=326
+Planning Time: 0.564 ms
+Execution Time: 0.042 ms
+=== R04 run 5 ===
+GroupAggregate  (cost=16.77..16.79 rows=1 width=12) (actual time=0.024..0.024 rows=1.00 loops=1)
+  Group Key: l.daily_goal_xp
+  Buffers: shared hit=10
+  ->  Sort  (cost=16.77..16.77 rows=1 width=8) (actual time=0.020..0.020 rows=1.00 loops=1)
+        Sort Key: l.daily_goal_xp
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=10
+        ->  Nested Loop Left Join  (cost=0.71..16.76 rows=1 width=8) (actual time=0.012..0.013 rows=1.00 loops=1)
+              Buffers: shared hit=7
+              ->  Index Scan using learners_pkey on learners l  (cost=0.29..8.30 rows=1 width=8) (actual time=0.005..0.005 rows=1.00 loops=1)
+                    Index Cond: (learner_id = 1042)
+                    Index Searches: 1
+                    Buffers: shared hit=3
+              ->  Index Scan using idx_lesson_attempts_learner_started on lesson_attempts a  (cost=0.42..8.44 rows=1 width=8) (actual time=0.006..0.006 rows=1.00 loops=1)
+                    Index Cond: ((learner_id = 1042) AND (started_at >= '2026-06-30 00:00:00+05:30'::timestamp with time zone) AND (started_at < '2026-07-01 00:00:00+05:30'::timestamp with time zone))
+                    Index Searches: 1
+                    Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=326
+Planning Time: 0.537 ms
+Execution Time: 0.051 ms
