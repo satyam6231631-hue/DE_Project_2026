@@ -86,3 +86,38 @@ CREATE TABLE lesson_attempts_2026_q3 PARTITION OF lesson_attempts_partitioned
 
 -- Default Partition (Safety Net for Out-of-Range Future Data)
 CREATE TABLE lesson_attempts_default PARTITION OF lesson_attempts_partitioned DEFAULT;
+
+-- ---------------------------------------------------------------------
+-- 3. Partitioned Table Supporting Indexes
+-- Indexes defined on the parent table are automatically propagated to 
+-- all current and future child partitions as local partition indexes.
+-- ---------------------------------------------------------------------
+
+-- Accelerates R04, R06 (learner attempts lookup)
+CREATE INDEX idx_part_attempts_learner_started 
+    ON lesson_attempts_partitioned (learner_id, started_at);
+
+-- Accelerates R07, R19 (curriculum lesson analysis)
+CREATE INDEX idx_part_attempts_lesson_id 
+    ON lesson_attempts_partitioned (lesson_id);
+
+-- Accelerates R22 (feed pagination)
+CREATE INDEX idx_part_attempts_started_desc 
+    ON lesson_attempts_partitioned (started_at DESC, attempt_id);
+
+-- ---------------------------------------------------------------------
+-- 4. Demonstration of Partition Pruning (EXPLAIN Output)
+-- ---------------------------------------------------------------------
+-- When querying a specific date (e.g. June 30, 2026 for R04), PostgreSQL's
+-- planner uses static/dynamic partition pruning to scan ONLY partition
+-- `lesson_attempts_2026_q2`, completely eliminating the other 4 partitions.
+
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT count(*) 
+FROM lesson_attempts_partitioned
+WHERE started_at >= '2026-06-30 00:00:00+05:30' 
+  AND started_at < '2026-07-01 00:00:00+05:30';
+
+-- =====================================================================
+-- End of sql/08_partitioning.sql
+-- =====================================================================
