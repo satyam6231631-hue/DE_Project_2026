@@ -94,3 +94,78 @@ When the dataset scaled by ~20× (from 514k to 9.91M rows), queries exhibited di
 
 ---
 
+## 3. What Broke at Scale & How We Fixed It
+
+### 3.1 The W05 Batch Insert Bottleneck: Foreign Key Triggers & Conflict Resolution
+
+#### Problem Diagnosis:
+In `sql/06_optimized_queries.sql`, `W05` was formulated using an `ON CONFLICT (learner_id, achievement_id) DO NOTHING` clause:
+```sql
+INSERT INTO learner_achievements (learner_id, achievement_id, earned_at)
+SELECT e.learner_id, (SELECT achievement_id FROM achievements WHERE code = 'XP_100'), '2026-07-01 00:00:00+05:30'
+FROM enrollments e
+GROUP BY e.learner_id
+HAVING sum(e.total_xp) >= 100
+ON CONFLICT (learner_id, achievement_id) DO NOTHING;
+```
+When executed on the large dataset, the query averaged **1,396.7 ms** (Run 1: 1,695 ms, Run 2: 1,735 ms, Run 3: 759 ms), breaching the **1,000 ms batch SLA target**.
+
+#### Plan Analysis:
+Inspecting `benchmarks/results/large/W05.txt` revealed the root cause:
+1. The aggregation query generated **239,403 candidate tuples**.
+2. Because 159,646 learners already possessed the badge, the insert engine had to execute **159,646 conflict arbiter lookups** against `learner_achievements_pkey`.
+3. For the remaining **79,757 successfully inserted tuples**, PostgreSQL fired the `learner_achievements_learner_id_fkey` constraint trigger 79,757 times, consuming **935.9 ms** in foreign key validation alone!
+
+#### The Fix: Anti-Join Filtering (`WHERE NOT EXISTS`)
+Instead of inserting all candidates and letting the database engine arbitrate conflicts one row at a time, we filter out existing badge holders before insertion using an anti-join:
+
+```sql
+WITH target_ach AS (
+    SELECT achievement_id FROM achievements WHERE code = 'XP_100'
+)
+INSERT INTO learner_achievements (learner_id, achievement_id, earned_at)
+SELECT e.learner_id, (SELECT achievement_id FROM target_ach), '2026-07-01 00:00:00+05:30'
+FROM enrollments e
+WHERE NOT EXISTS (
+    SELECT 1 FROM learner_achievements la 
+    WHERE la.learner_id = e.learner_id 
+      AND la.achievement_id = (SELECT achievement_id FROM target_ach)
+)
+GROUP BY e.learner_id
+HAVING sum(e.total_xp) >= 100;
+```
+
+#### Verification & Performance Impact:
+* **Before Plan (ON CONFLICT):** Execution Time = **1,396.7 ms** (Buffers: 1,326,082 shared hits, 159,646 conflict arbitrations).
+* **After Plan (Merge Anti Join):** Execution Time = **644.5 ms** (**53.8% speedup!**).
+* **Result:** The Merge Anti Join pre-filters tuples in memory in 162 ms using `learner_achievements_pkey`. The engine inserts strictly the 79,757 missing records, bringing `W05` safely within the `< 1,000 ms` batch SLA.
+
+---
+
+### 3.2 Deep Pagination at Scale (`R22`): OFFSET vs. Keyset Pagination
+
+#### Problem Context:
+`R22` represents the support console browsing the historical stream of lesson attempts:
+```sql
+SELECT attempt_id, learner_id, lesson_id, started_at, xp_earned
+FROM lesson_attempts
+ORDER BY started_at DESC
+OFFSET 100000 LIMIT 25;
+```
+On the seed dataset (188k rows), `OFFSET 100000` was already near the halfway point of the table. On the large dataset (3.61M rows), reading 100k rows takes **9.79 ms** because our composite index `idx_lesson_attempts_started_desc (started_at DESC, attempt_id)` allows an Index Scan.
+
+However, as data scales to 100× (360 million rows), requesting page 40,000 (`OFFSET 1,000,000`) forces the database to read and discard 1,000,000 index entries, causing execution time to degrade to several hundred milliseconds.
+
+#### The Keyset Pagination Architecture:
+For true 100× scalability, `OFFSET` must be replaced with cursor-based **keyset pagination**:
+```sql
+-- Keyset pagination using composite tuple comparison:
+SELECT attempt_id, learner_id, lesson_id, started_at, xp_earned
+FROM lesson_attempts
+WHERE (started_at, attempt_id) < ($last_seen_started_at, $last_seen_attempt_id)
+ORDER BY started_at DESC, attempt_id DESC
+LIMIT 25;
+```
+* **Performance:** Regardless of whether the user is on page 1 or page 40,000, PostgreSQL jumps directly to the `$last_seen` position via B-Tree root-to-leaf traversal in $O(\log N)$ time and reads **exactly 25 tuples** (< 0.1 ms).
+
+---
