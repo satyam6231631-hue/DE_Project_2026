@@ -1,0 +1,54 @@
+=== R02 run 1 ===
+Sort  (cost=9.70..9.71 rows=1 width=41) (actual time=0.561..0.562 rows=1.00 loops=1)
+  Sort Key: e.total_xp DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=4 read=4
+  ->  Nested Loop  (cost=0.42..9.69 rows=1 width=41) (actual time=0.537..0.538 rows=1.00 loops=1)
+        Join Filter: (e.course_id = c.course_id)
+        Buffers: shared hit=1 read=4
+        ->  Index Scan using enrollments_pkey on enrollments e  (cost=0.42..8.44 rows=1 width=17) (actual time=0.520..0.521 rows=1.00 loops=1)
+              Index Cond: (learner_id = 1042)
+              Index Searches: 1
+              Buffers: shared read=4
+        ->  Seq Scan on courses c  (cost=0.00..1.11 rows=11 width=32) (actual time=0.010..0.010 rows=1.00 loops=1)
+              Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=198 read=2 dirtied=3
+Planning Time: 1.301 ms
+Execution Time: 0.614 ms
+=== R02 run 2 ===
+Sort  (cost=9.70..9.71 rows=1 width=41) (actual time=0.040..0.040 rows=1.00 loops=1)
+  Sort Key: e.total_xp DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=8
+  ->  Nested Loop  (cost=0.42..9.69 rows=1 width=41) (actual time=0.022..0.023 rows=1.00 loops=1)
+        Join Filter: (e.course_id = c.course_id)
+        Buffers: shared hit=5
+        ->  Index Scan using enrollments_pkey on enrollments e  (cost=0.42..8.44 rows=1 width=17) (actual time=0.011..0.011 rows=1.00 loops=1)
+              Index Cond: (learner_id = 1042)
+              Index Searches: 1
+              Buffers: shared hit=4
+        ->  Seq Scan on courses c  (cost=0.00..1.11 rows=11 width=32) (actual time=0.009..0.009 rows=1.00 loops=1)
+              Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=190
+Planning Time: 0.804 ms
+Execution Time: 0.087 ms
+=== R02 run 3 ===
+Sort  (cost=9.70..9.71 rows=1 width=41) (actual time=0.036..0.036 rows=1.00 loops=1)
+  Sort Key: e.total_xp DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=8
+  ->  Nested Loop  (cost=0.42..9.69 rows=1 width=41) (actual time=0.021..0.021 rows=1.00 loops=1)
+        Join Filter: (e.course_id = c.course_id)
+        Buffers: shared hit=5
+        ->  Index Scan using enrollments_pkey on enrollments e  (cost=0.42..8.44 rows=1 width=17) (actual time=0.011..0.011 rows=1.00 loops=1)
+              Index Cond: (learner_id = 1042)
+              Index Searches: 1
+              Buffers: shared hit=4
+        ->  Seq Scan on courses c  (cost=0.00..1.11 rows=11 width=32) (actual time=0.007..0.007 rows=1.00 loops=1)
+              Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=190
+Planning Time: 0.885 ms
+Execution Time: 0.082 ms

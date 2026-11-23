@@ -1,0 +1,45 @@
+=== R13 run 1 ===
+Merge Anti Join  (cost=11.67..28479.32 rows=542759 width=22) (actual time=3.657..96.701 rows=485879.00 loops=1)
+  Merge Cond: (l.learner_id = r.referred_by)
+  Buffers: shared hit=922 read=9026
+  ->  Index Scan using learners_pkey on learners l  (cost=0.42..23422.07 rows=600000 width=22) (actual time=0.020..53.083 rows=600000.00 loops=1)
+        Index Searches: 1
+        Buffers: shared hit=921 read=8615
+  ->  Index Only Scan using idx_learners_referred_by on learners r  (cost=0.42..4395.43 rows=600000 width=4) (actual time=0.012..7.863 rows=179992.00 loops=1)
+        Heap Fetches: 0
+        Index Searches: 1
+        Buffers: shared hit=1 read=411
+Planning:
+  Buffers: shared hit=269
+Planning Time: 0.424 ms
+Execution Time: 107.136 ms
+=== R13 run 2 ===
+Merge Anti Join  (cost=11.67..28479.32 rows=542759 width=22) (actual time=1.160..68.078 rows=485879.00 loops=1)
+  Merge Cond: (l.learner_id = r.referred_by)
+  Buffers: shared hit=9948
+  ->  Index Scan using learners_pkey on learners l  (cost=0.42..23422.07 rows=600000 width=22) (actual time=0.005..31.696 rows=600000.00 loops=1)
+        Index Searches: 1
+        Buffers: shared hit=9536
+  ->  Index Only Scan using idx_learners_referred_by on learners r  (cost=0.42..4395.43 rows=600000 width=4) (actual time=0.004..5.551 rows=179992.00 loops=1)
+        Heap Fetches: 0
+        Index Searches: 1
+        Buffers: shared hit=412
+Planning:
+  Buffers: shared hit=269
+Planning Time: 0.403 ms
+Execution Time: 76.512 ms
+=== R13 run 3 ===
+Merge Anti Join  (cost=11.67..28479.32 rows=542759 width=22) (actual time=1.188..67.400 rows=485879.00 loops=1)
+  Merge Cond: (l.learner_id = r.referred_by)
+  Buffers: shared hit=9948
+  ->  Index Scan using learners_pkey on learners l  (cost=0.42..23422.07 rows=600000 width=22) (actual time=0.004..31.413 rows=600000.00 loops=1)
+        Index Searches: 1
+        Buffers: shared hit=9536
+  ->  Index Only Scan using idx_learners_referred_by on learners r  (cost=0.42..4395.43 rows=600000 width=4) (actual time=0.004..5.397 rows=179992.00 loops=1)
+        Heap Fetches: 0
+        Index Searches: 1
+        Buffers: shared hit=412
+Planning:
+  Buffers: shared hit=269
+Planning Time: 0.404 ms
+Execution Time: 75.817 ms

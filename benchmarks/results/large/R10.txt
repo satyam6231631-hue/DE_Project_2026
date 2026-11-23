@@ -1,0 +1,123 @@
+=== R10 run 1 ===
+Sort  (cost=15195.84..15195.85 rows=3 width=13) (actual time=18.567..19.373 rows=2.00 loops=1)
+  Sort Key: (count(*)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=102 read=7863
+  ->  Finalize GroupAggregate  (cost=15194.94..15195.82 rows=3 width=13) (actual time=18.559..19.367 rows=2.00 loops=1)
+        Group Key: l.subscription
+        Buffers: shared hit=99 read=7863
+        ->  Gather Merge  (cost=15194.94..15195.76 rows=7 width=13) (actual time=18.554..19.362 rows=6.00 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=99 read=7863
+              ->  Sort  (cost=14194.92..14194.92 rows=3 width=13) (actual time=16.960..16.961 rows=2.00 loops=3)
+                    Sort Key: l.subscription
+                    Sort Method: quicksort  Memory: 25kB
+                    Buffers: shared hit=99 read=7863
+                    Worker 0:  Sort Method: quicksort  Memory: 25kB
+                    Worker 1:  Sort Method: quicksort  Memory: 25kB
+                    ->  Partial HashAggregate  (cost=14194.86..14194.89 rows=3 width=13) (actual time=16.942..16.943 rows=2.00 loops=3)
+                          Group Key: l.subscription
+                          Batches: 1  Memory Usage: 32kB
+                          Buffers: shared hit=83 read=7863
+                          Worker 0:  Batches: 1  Memory Usage: 32kB
+                          Worker 1:  Batches: 1  Memory Usage: 32kB
+                          ->  Hash Join  (cost=664.97..14167.90 rows=5393 width=5) (actual time=1.337..16.593 rows=4528.33 loops=3)
+                                Hash Cond: (l.learner_id = d.learner_id)
+                                Buffers: shared hit=83 read=7863
+                                ->  Parallel Seq Scan on learners l  (cost=0.00..10324.00 rows=250000 width=9) (actual time=0.033..6.294 rows=200000.00 loops=3)
+                                      Buffers: shared read=7824
+                                ->  Hash  (cost=503.17..503.17 rows=12944 width=4) (actual time=1.271..1.271 rows=13585.00 loops=3)
+                                      Buckets: 16384  Batches: 1  Memory Usage: 606kB
+                                      Buffers: shared hit=83 read=39
+                                      ->  Index Only Scan using idx_daily_activity_freeze on daily_activity d  (cost=0.29..503.17 rows=12944 width=4) (actual time=0.024..0.655 rows=13585.00 loops=3)
+                                            Index Cond: ((activity_date >= '2026-01-01'::date) AND (activity_date <= '2026-12-31'::date))
+                                            Heap Fetches: 0
+                                            Index Searches: 3
+                                            Buffers: shared hit=83 read=39
+Planning:
+  Buffers: shared hit=373 read=18
+Planning Time: 1.339 ms
+Execution Time: 19.439 ms
+=== R10 run 2 ===
+Sort  (cost=15195.84..15195.85 rows=3 width=13) (actual time=18.520..19.383 rows=2.00 loops=1)
+  Sort Key: (count(*)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=423 read=7542
+  ->  Finalize GroupAggregate  (cost=15194.94..15195.82 rows=3 width=13) (actual time=18.513..19.377 rows=2.00 loops=1)
+        Group Key: l.subscription
+        Buffers: shared hit=420 read=7542
+        ->  Gather Merge  (cost=15194.94..15195.76 rows=7 width=13) (actual time=18.484..19.371 rows=6.00 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=420 read=7542
+              ->  Sort  (cost=14194.92..14194.92 rows=3 width=13) (actual time=16.891..16.894 rows=2.00 loops=3)
+                    Sort Key: l.subscription
+                    Sort Method: quicksort  Memory: 25kB
+                    Buffers: shared hit=420 read=7542
+                    Worker 0:  Sort Method: quicksort  Memory: 25kB
+                    Worker 1:  Sort Method: quicksort  Memory: 25kB
+                    ->  Partial HashAggregate  (cost=14194.86..14194.89 rows=3 width=13) (actual time=16.875..16.877 rows=2.00 loops=3)
+                          Group Key: l.subscription
+                          Batches: 1  Memory Usage: 32kB
+                          Buffers: shared hit=404 read=7542
+                          Worker 0:  Batches: 1  Memory Usage: 32kB
+                          Worker 1:  Batches: 1  Memory Usage: 32kB
+                          ->  Hash Join  (cost=664.97..14167.90 rows=5393 width=5) (actual time=1.283..16.523 rows=4528.33 loops=3)
+                                Hash Cond: (l.learner_id = d.learner_id)
+                                Buffers: shared hit=404 read=7542
+                                ->  Parallel Seq Scan on learners l  (cost=0.00..10324.00 rows=250000 width=9) (actual time=0.036..6.089 rows=200000.00 loops=3)
+                                      Buffers: shared hit=282 read=7542
+                                ->  Hash  (cost=503.17..503.17 rows=12944 width=4) (actual time=1.232..1.232 rows=13585.00 loops=3)
+                                      Buckets: 16384  Batches: 1  Memory Usage: 606kB
+                                      Buffers: shared hit=122
+                                      ->  Index Only Scan using idx_daily_activity_freeze on daily_activity d  (cost=0.29..503.17 rows=12944 width=4) (actual time=0.021..0.597 rows=13585.00 loops=3)
+                                            Index Cond: ((activity_date >= '2026-01-01'::date) AND (activity_date <= '2026-12-31'::date))
+                                            Heap Fetches: 0
+                                            Index Searches: 3
+                                            Buffers: shared hit=122
+Planning:
+  Buffers: shared hit=391
+Planning Time: 0.601 ms
+Execution Time: 19.440 ms
+=== R10 run 3 ===
+Sort  (cost=15195.84..15195.85 rows=3 width=13) (actual time=17.725..18.613 rows=2.00 loops=1)
+  Sort Key: (count(*)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=705 read=7260
+  ->  Finalize GroupAggregate  (cost=15194.94..15195.82 rows=3 width=13) (actual time=17.718..18.607 rows=2.00 loops=1)
+        Group Key: l.subscription
+        Buffers: shared hit=702 read=7260
+        ->  Gather Merge  (cost=15194.94..15195.76 rows=7 width=13) (actual time=17.715..18.604 rows=6.00 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=702 read=7260
+              ->  Sort  (cost=14194.92..14194.92 rows=3 width=13) (actual time=16.279..16.280 rows=2.00 loops=3)
+                    Sort Key: l.subscription
+                    Sort Method: quicksort  Memory: 25kB
+                    Buffers: shared hit=702 read=7260
+                    Worker 0:  Sort Method: quicksort  Memory: 25kB
+                    Worker 1:  Sort Method: quicksort  Memory: 25kB
+                    ->  Partial HashAggregate  (cost=14194.86..14194.89 rows=3 width=13) (actual time=16.261..16.262 rows=2.00 loops=3)
+                          Group Key: l.subscription
+                          Batches: 1  Memory Usage: 32kB
+                          Buffers: shared hit=686 read=7260
+                          Worker 0:  Batches: 1  Memory Usage: 32kB
+                          Worker 1:  Batches: 1  Memory Usage: 32kB
+                          ->  Hash Join  (cost=664.97..14167.90 rows=5393 width=5) (actual time=1.219..15.936 rows=4528.33 loops=3)
+                                Hash Cond: (l.learner_id = d.learner_id)
+                                Buffers: shared hit=686 read=7260
+                                ->  Parallel Seq Scan on learners l  (cost=0.00..10324.00 rows=250000 width=9) (actual time=0.033..5.955 rows=200000.00 loops=3)
+                                      Buffers: shared hit=564 read=7260
+                                ->  Hash  (cost=503.17..503.17 rows=12944 width=4) (actual time=1.173..1.173 rows=13585.00 loops=3)
+                                      Buckets: 16384  Batches: 1  Memory Usage: 606kB
+                                      Buffers: shared hit=122
+                                      ->  Index Only Scan using idx_daily_activity_freeze on daily_activity d  (cost=0.29..503.17 rows=12944 width=4) (actual time=0.023..0.578 rows=13585.00 loops=3)
+                                            Index Cond: ((activity_date >= '2026-01-01'::date) AND (activity_date <= '2026-12-31'::date))
+                                            Heap Fetches: 0
+                                            Index Searches: 3
+                                            Buffers: shared hit=122
+Planning:
+  Buffers: shared hit=391
+Planning Time: 0.543 ms
+Execution Time: 18.655 ms
