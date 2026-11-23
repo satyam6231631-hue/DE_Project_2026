@@ -1,0 +1,30 @@
+=== R22 run 1 ===
+Limit  (cost=3630.04..3630.94 rows=25 width=28) (actual time=11.223..11.225 rows=25.00 loops=1)
+  Buffers: shared hit=4563 read=1362
+  ->  Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.43..130967.52 rows=3608300 width=28) (actual time=0.014..9.510 rows=100025.00 loops=1)
+        Index Searches: 1
+        Buffers: shared hit=4563 read=1362
+Planning:
+  Buffers: shared hit=190 read=17
+Planning Time: 0.458 ms
+Execution Time: 11.237 ms
+=== R22 run 2 ===
+Limit  (cost=3630.04..3630.94 rows=25 width=28) (actual time=9.102..9.104 rows=25.00 loops=1)
+  Buffers: shared hit=5925
+  ->  Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.43..130967.52 rows=3608300 width=28) (actual time=0.006..7.400 rows=100025.00 loops=1)
+        Index Searches: 1
+        Buffers: shared hit=5925
+Planning:
+  Buffers: shared hit=207
+Planning Time: 0.315 ms
+Execution Time: 9.113 ms
+=== R22 run 3 ===
+Limit  (cost=3630.04..3630.94 rows=25 width=28) (actual time=9.026..9.028 rows=25.00 loops=1)
+  Buffers: shared hit=5925
+  ->  Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.43..130967.52 rows=3608300 width=28) (actual time=0.006..7.310 rows=100025.00 loops=1)
+        Index Searches: 1
+        Buffers: shared hit=5925
+Planning:
+  Buffers: shared hit=207
+Planning Time: 0.310 ms
+Execution Time: 9.038 ms

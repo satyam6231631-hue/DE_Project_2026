@@ -1,0 +1,102 @@
+=== R17 run 1 ===
+Sort  (cost=47170.57..47170.58 rows=3 width=46) (actual time=69.201..70.723 rows=3.00 loops=1)
+  Sort Key: (round(((100.0 * (count(*) FILTER (WHERE is_perfect))::numeric) / (count(*))::numeric), 2)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=16242 read=15542 written=245
+  ->  Finalize GroupAggregate  (cost=47169.61..47170.55 rows=3 width=46) (actual time=69.192..70.715 rows=3.00 loops=1)
+        Group Key: device
+        Buffers: shared hit=16239 read=15542 written=245
+        ->  Gather Merge  (cost=47169.61..47170.43 rows=7 width=22) (actual time=69.182..70.703 rows=9.00 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=16239 read=15542 written=245
+              ->  Sort  (cost=46169.59..46169.60 rows=3 width=22) (actual time=67.577..67.577 rows=3.00 loops=3)
+                    Sort Key: device
+                    Sort Method: quicksort  Memory: 25kB
+                    Buffers: shared hit=16239 read=15542 written=245
+                    Worker 0:  Sort Method: quicksort  Memory: 25kB
+                    Worker 1:  Sort Method: quicksort  Memory: 25kB
+                    ->  Partial HashAggregate  (cost=46169.54..46169.57 rows=3 width=22) (actual time=67.561..67.561 rows=3.00 loops=3)
+                          Group Key: device
+                          Batches: 1  Memory Usage: 32kB
+                          Buffers: shared hit=16223 read=15542 written=245
+                          Worker 0:  Batches: 1  Memory Usage: 32kB
+                          Worker 1:  Batches: 1  Memory Usage: 32kB
+                          ->  Parallel Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.43..42840.33 rows=443894 width=7) (actual time=0.044..40.398 rows=352955.33 loops=3)
+                                Index Cond: ((started_at >= '2026-01-01 00:00:00+05:30'::timestamp with time zone) AND (started_at < '2027-01-01 00:00:00+05:30'::timestamp with time zone))
+                                Filter: (completed_at IS NOT NULL)
+                                Rows Removed by Filter: 47613
+                                Index Searches: 1
+                                Buffers: shared hit=16223 read=15542 written=245
+Planning:
+  Buffers: shared hit=248 read=3
+Planning Time: 0.904 ms
+Execution Time: 70.767 ms
+=== R17 run 2 ===
+Sort  (cost=47170.57..47170.58 rows=3 width=46) (actual time=82.865..84.513 rows=3.00 loops=1)
+  Sort Key: (round(((100.0 * (count(*) FILTER (WHERE is_perfect))::numeric) / (count(*))::numeric), 2)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=23372 read=8335
+  ->  Finalize GroupAggregate  (cost=47169.61..47170.55 rows=3 width=46) (actual time=82.855..84.503 rows=3.00 loops=1)
+        Group Key: device
+        Buffers: shared hit=23369 read=8335
+        ->  Gather Merge  (cost=47169.61..47170.43 rows=7 width=22) (actual time=82.842..84.489 rows=9.00 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=23369 read=8335
+              ->  Sort  (cost=46169.59..46169.60 rows=3 width=22) (actual time=81.485..81.485 rows=3.00 loops=3)
+                    Sort Key: device
+                    Sort Method: quicksort  Memory: 25kB
+                    Buffers: shared hit=23369 read=8335
+                    Worker 0:  Sort Method: quicksort  Memory: 25kB
+                    Worker 1:  Sort Method: quicksort  Memory: 25kB
+                    ->  Partial HashAggregate  (cost=46169.54..46169.57 rows=3 width=22) (actual time=81.469..81.470 rows=3.00 loops=3)
+                          Group Key: device
+                          Batches: 1  Memory Usage: 32kB
+                          Buffers: shared hit=23353 read=8335
+                          Worker 0:  Batches: 1  Memory Usage: 32kB
+                          Worker 1:  Batches: 1  Memory Usage: 32kB
+                          ->  Parallel Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.43..42840.33 rows=443894 width=7) (actual time=0.033..48.406 rows=352955.33 loops=3)
+                                Index Cond: ((started_at >= '2026-01-01 00:00:00+05:30'::timestamp with time zone) AND (started_at < '2027-01-01 00:00:00+05:30'::timestamp with time zone))
+                                Filter: (completed_at IS NOT NULL)
+                                Rows Removed by Filter: 47613
+                                Index Searches: 1
+                                Buffers: shared hit=23353 read=8335
+Planning:
+  Buffers: shared hit=211 read=40
+Planning Time: 0.598 ms
+Execution Time: 84.554 ms
+=== R17 run 3 ===
+Sort  (cost=47170.57..47170.58 rows=3 width=46) (actual time=56.104..57.703 rows=3.00 loops=1)
+  Sort Key: (round(((100.0 * (count(*) FILTER (WHERE is_perfect))::numeric) / (count(*))::numeric), 2)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=31778
+  ->  Finalize GroupAggregate  (cost=47169.61..47170.55 rows=3 width=46) (actual time=56.095..57.695 rows=3.00 loops=1)
+        Group Key: device
+        Buffers: shared hit=31775
+        ->  Gather Merge  (cost=47169.61..47170.43 rows=7 width=22) (actual time=56.087..57.687 rows=9.00 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=31775
+              ->  Sort  (cost=46169.59..46169.60 rows=3 width=22) (actual time=54.788..54.788 rows=3.00 loops=3)
+                    Sort Key: device
+                    Sort Method: quicksort  Memory: 25kB
+                    Buffers: shared hit=31775
+                    Worker 0:  Sort Method: quicksort  Memory: 25kB
+                    Worker 1:  Sort Method: quicksort  Memory: 25kB
+                    ->  Partial HashAggregate  (cost=46169.54..46169.57 rows=3 width=22) (actual time=54.770..54.771 rows=3.00 loops=3)
+                          Group Key: device
+                          Batches: 1  Memory Usage: 32kB
+                          Buffers: shared hit=31759
+                          Worker 0:  Batches: 1  Memory Usage: 32kB
+                          Worker 1:  Batches: 1  Memory Usage: 32kB
+                          ->  Parallel Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.43..42840.33 rows=443894 width=7) (actual time=0.009..28.785 rows=352955.33 loops=3)
+                                Index Cond: ((started_at >= '2026-01-01 00:00:00+05:30'::timestamp with time zone) AND (started_at < '2027-01-01 00:00:00+05:30'::timestamp with time zone))
+                                Filter: (completed_at IS NOT NULL)
+                                Rows Removed by Filter: 47613
+                                Index Searches: 1
+                                Buffers: shared hit=31759
+Planning:
+  Buffers: shared hit=251
+Planning Time: 0.390 ms
+Execution Time: 57.746 ms

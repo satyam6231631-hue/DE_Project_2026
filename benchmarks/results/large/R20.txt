@@ -1,0 +1,60 @@
+=== R20 run 1 ===
+WindowAgg  (cost=30172.80..37413.32 rows=206873 width=44) (actual time=34.445..44.722 rows=30.00 loops=1)
+  Window: w1 AS (ORDER BY ((lesson_attempts.started_at)::date))
+  Storage: Memory  Maximum Storage: 17kB
+  Buffers: shared hit=11073, temp read=449 written=451
+  ->  GroupAggregate  (cost=30172.77..34310.23 rows=206873 width=12) (actual time=33.951..44.692 rows=30.00 loops=1)
+        Group Key: ((lesson_attempts.started_at)::date)
+        Buffers: shared hit=11073, temp read=449 written=451
+        ->  Sort  (cost=30172.77..30689.95 rows=206873 width=8) (actual time=33.568..39.027 rows=203144.00 loops=1)
+              Sort Key: ((lesson_attempts.started_at)::date)
+              Sort Method: external merge  Disk: 3592kB
+              Buffers: shared hit=11073, temp read=449 written=451
+              ->  Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.43..9076.05 rows=206873 width=8) (actual time=0.010..22.042 rows=203144.00 loops=1)
+                    Index Cond: ((started_at >= '2026-06-01 00:00:00+05:30'::timestamp with time zone) AND (started_at < '2026-07-01 00:00:00+05:30'::timestamp with time zone))
+                    Index Searches: 1
+                    Buffers: shared hit=11070
+Planning:
+  Buffers: shared hit=247 read=1
+Planning Time: 0.438 ms
+Execution Time: 45.771 ms
+=== R20 run 2 ===
+WindowAgg  (cost=30172.80..37413.32 rows=206873 width=44) (actual time=31.831..42.104 rows=30.00 loops=1)
+  Window: w1 AS (ORDER BY ((lesson_attempts.started_at)::date))
+  Storage: Memory  Maximum Storage: 17kB
+  Buffers: shared hit=11073, temp read=449 written=451
+  ->  GroupAggregate  (cost=30172.77..34310.23 rows=206873 width=12) (actual time=31.450..42.083 rows=30.00 loops=1)
+        Group Key: ((lesson_attempts.started_at)::date)
+        Buffers: shared hit=11073, temp read=449 written=451
+        ->  Sort  (cost=30172.77..30689.95 rows=206873 width=8) (actual time=31.075..36.440 rows=203144.00 loops=1)
+              Sort Key: ((lesson_attempts.started_at)::date)
+              Sort Method: external merge  Disk: 3592kB
+              Buffers: shared hit=11073, temp read=449 written=451
+              ->  Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.43..9076.05 rows=206873 width=8) (actual time=0.008..20.857 rows=203144.00 loops=1)
+                    Index Cond: ((started_at >= '2026-06-01 00:00:00+05:30'::timestamp with time zone) AND (started_at < '2026-07-01 00:00:00+05:30'::timestamp with time zone))
+                    Index Searches: 1
+                    Buffers: shared hit=11070
+Planning:
+  Buffers: shared hit=248
+Planning Time: 0.387 ms
+Execution Time: 45.922 ms
+=== R20 run 3 ===
+WindowAgg  (cost=30172.80..37413.32 rows=206873 width=44) (actual time=31.862..42.267 rows=30.00 loops=1)
+  Window: w1 AS (ORDER BY ((lesson_attempts.started_at)::date))
+  Storage: Memory  Maximum Storage: 17kB
+  Buffers: shared hit=11073, temp read=449 written=451
+  ->  GroupAggregate  (cost=30172.77..34310.23 rows=206873 width=12) (actual time=31.480..42.245 rows=30.00 loops=1)
+        Group Key: ((lesson_attempts.started_at)::date)
+        Buffers: shared hit=11073, temp read=449 written=451
+        ->  Sort  (cost=30172.77..30689.95 rows=206873 width=8) (actual time=31.102..36.489 rows=203144.00 loops=1)
+              Sort Key: ((lesson_attempts.started_at)::date)
+              Sort Method: external merge  Disk: 3592kB
+              Buffers: shared hit=11073, temp read=449 written=451
+              ->  Index Scan using idx_lesson_attempts_started_at on lesson_attempts  (cost=0.43..9076.05 rows=206873 width=8) (actual time=0.009..20.775 rows=203144.00 loops=1)
+                    Index Cond: ((started_at >= '2026-06-01 00:00:00+05:30'::timestamp with time zone) AND (started_at < '2026-07-01 00:00:00+05:30'::timestamp with time zone))
+                    Index Searches: 1
+                    Buffers: shared hit=11070
+Planning:
+  Buffers: shared hit=248
+Planning Time: 0.570 ms
+Execution Time: 43.532 ms

@@ -1,0 +1,36 @@
+=== R16 run 1 ===
+Limit  (cost=0.42..50.38 rows=20 width=25) (actual time=231.056..231.066 rows=20.00 loops=1)
+  Buffers: shared hit=192021 read=1487
+  ->  Index Scan using learners_username_key on learners  (cost=0.42..60550.52 rows=24242 width=25) (actual time=231.056..231.065 rows=20.00 loops=1)
+        Filter: ((username)::text ~~* 'karan%'::text)
+        Rows Removed by Filter: 192000
+        Index Searches: 1
+        Buffers: shared hit=192021 read=1487
+Planning:
+  Buffers: shared hit=171
+Planning Time: 0.505 ms
+Execution Time: 231.077 ms
+=== R16 run 2 ===
+Limit  (cost=0.42..50.38 rows=20 width=25) (actual time=82.402..82.411 rows=20.00 loops=1)
+  Buffers: shared hit=193508
+  ->  Index Scan using learners_username_key on learners  (cost=0.42..60550.52 rows=24242 width=25) (actual time=82.401..82.410 rows=20.00 loops=1)
+        Filter: ((username)::text ~~* 'karan%'::text)
+        Rows Removed by Filter: 192000
+        Index Searches: 1
+        Buffers: shared hit=193508
+Planning:
+  Buffers: shared hit=171
+Planning Time: 0.371 ms
+Execution Time: 82.422 ms
+=== R16 run 3 ===
+Limit  (cost=0.42..50.38 rows=20 width=25) (actual time=83.102..83.110 rows=20.00 loops=1)
+  Buffers: shared hit=193508
+  ->  Index Scan using learners_username_key on learners  (cost=0.42..60550.52 rows=24242 width=25) (actual time=83.101..83.109 rows=20.00 loops=1)
+        Filter: ((username)::text ~~* 'karan%'::text)
+        Rows Removed by Filter: 192000
+        Index Searches: 1
+        Buffers: shared hit=193508
+Planning:
+  Buffers: shared hit=171
+Planning Time: 0.333 ms
+Execution Time: 83.121 ms

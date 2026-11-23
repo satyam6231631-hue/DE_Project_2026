@@ -1,0 +1,132 @@
+=== R19 run 1 ===
+Sort  (cost=92730.08..92730.48 rows=160 width=52) (actual time=279.970..279.975 rows=160.00 loops=1)
+  Sort Key: cl.unit_no, cl.lesson_no
+  Sort Method: quicksort  Memory: 32kB
+  Buffers: shared hit=12077 read=25198
+  CTE course_lessons
+    ->  Hash Join  (cost=5.00..41.31 rows=160 width=12) (actual time=0.045..0.172 rows=160.00 loops=1)
+          Hash Cond: (l.unit_id = u.unit_id)
+          Buffers: shared hit=2 read=14
+          ->  Seq Scan on lessons l  (cost=0.00..31.60 rows=1760 width=12) (actual time=0.029..0.105 rows=1760.00 loops=1)
+                Buffers: shared read=14
+          ->  Hash  (cost=4.75..4.75 rows=20 width=8) (actual time=0.012..0.013 rows=20.00 loops=1)
+                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                Buffers: shared hit=2
+                ->  Seq Scan on units u  (cost=0.00..4.75 rows=20 width=8) (actual time=0.004..0.009 rows=20.00 loops=1)
+                      Filter: (course_id = 1)
+                      Rows Removed by Filter: 200
+                      Buffers: shared hit=2
+  ->  Hash Right Join  (cost=92630.80..92682.91 rows=160 width=52) (actual time=279.903..279.947 rows=160.00 loops=1)
+        Hash Cond: (a.lesson_id = cl.lesson_id)
+        Buffers: shared hit=12074 read=25198
+        ->  HashAggregate  (cost=92625.60..92651.95 rows=1757 width=44) (actual time=279.709..279.736 rows=160.00 loops=1)
+              Group Key: a.lesson_id
+              Batches: 1  Memory Usage: 81kB
+              Buffers: shared hit=12072 read=25184
+              ->  Hash Join  (cost=5.20..90161.19 rows=328587 width=16) (actual time=0.021..229.836 rows=903059.00 loops=1)
+                    Hash Cond: (a.lesson_id = cl_1.lesson_id)
+                    Buffers: shared hit=12072 read=25184
+                    ->  Seq Scan on lesson_attempts a  (cost=0.00..73339.00 rows=3608300 width=16) (actual time=0.005..88.109 rows=3608300.00 loops=1)
+                          Buffers: shared hit=12072 read=25184
+                    ->  Hash  (cost=3.20..3.20 rows=160 width=4) (actual time=0.012..0.012 rows=160.00 loops=1)
+                          Buckets: 1024  Batches: 1  Memory Usage: 14kB
+                          ->  CTE Scan on course_lessons cl_1  (cost=0.00..3.20 rows=160 width=4) (actual time=0.000..0.006 rows=160.00 loops=1)
+                                Storage: Memory  Maximum Storage: 23kB
+        ->  Hash  (cost=3.20..3.20 rows=160 width=12) (actual time=0.189..0.190 rows=160.00 loops=1)
+              Buckets: 1024  Batches: 1  Memory Usage: 15kB
+              Buffers: shared hit=2 read=14
+              ->  CTE Scan on course_lessons cl  (cost=0.00..3.20 rows=160 width=12) (actual time=0.046..0.184 rows=160.00 loops=1)
+                    Storage: Memory  Maximum Storage: 23kB
+                    Buffers: shared hit=2 read=14
+Planning:
+  Buffers: shared hit=330 read=22
+Planning Time: 1.026 ms
+Execution Time: 280.030 ms
+=== R19 run 2 ===
+Sort  (cost=92730.08..92730.48 rows=160 width=52) (actual time=277.131..277.135 rows=160.00 loops=1)
+  Sort Key: cl.unit_no, cl.lesson_no
+  Sort Method: quicksort  Memory: 32kB
+  Buffers: shared hit=12185 read=25090
+  CTE course_lessons
+    ->  Hash Join  (cost=5.00..41.31 rows=160 width=12) (actual time=0.020..0.123 rows=160.00 loops=1)
+          Hash Cond: (l.unit_id = u.unit_id)
+          Buffers: shared hit=16
+          ->  Seq Scan on lessons l  (cost=0.00..31.60 rows=1760 width=12) (actual time=0.004..0.054 rows=1760.00 loops=1)
+                Buffers: shared hit=14
+          ->  Hash  (cost=4.75..4.75 rows=20 width=8) (actual time=0.012..0.012 rows=20.00 loops=1)
+                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                Buffers: shared hit=2
+                ->  Seq Scan on units u  (cost=0.00..4.75 rows=20 width=8) (actual time=0.003..0.009 rows=20.00 loops=1)
+                      Filter: (course_id = 1)
+                      Rows Removed by Filter: 200
+                      Buffers: shared hit=2
+  ->  Hash Right Join  (cost=92630.80..92682.91 rows=160 width=52) (actual time=277.062..277.107 rows=160.00 loops=1)
+        Hash Cond: (a.lesson_id = cl.lesson_id)
+        Buffers: shared hit=12182 read=25090
+        ->  HashAggregate  (cost=92625.60..92651.95 rows=1757 width=44) (actual time=276.916..276.943 rows=160.00 loops=1)
+              Group Key: a.lesson_id
+              Batches: 1  Memory Usage: 81kB
+              Buffers: shared hit=12166 read=25090
+              ->  Hash Join  (cost=5.20..90161.19 rows=328587 width=16) (actual time=0.021..227.792 rows=903059.00 loops=1)
+                    Hash Cond: (a.lesson_id = cl_1.lesson_id)
+                    Buffers: shared hit=12166 read=25090
+                    ->  Seq Scan on lesson_attempts a  (cost=0.00..73339.00 rows=3608300 width=16) (actual time=0.005..87.211 rows=3608300.00 loops=1)
+                          Buffers: shared hit=12166 read=25090
+                    ->  Hash  (cost=3.20..3.20 rows=160 width=4) (actual time=0.012..0.012 rows=160.00 loops=1)
+                          Buckets: 1024  Batches: 1  Memory Usage: 14kB
+                          ->  CTE Scan on course_lessons cl_1  (cost=0.00..3.20 rows=160 width=4) (actual time=0.000..0.005 rows=160.00 loops=1)
+                                Storage: Memory  Maximum Storage: 23kB
+        ->  Hash  (cost=3.20..3.20 rows=160 width=12) (actual time=0.141..0.141 rows=160.00 loops=1)
+              Buckets: 1024  Batches: 1  Memory Usage: 15kB
+              Buffers: shared hit=16
+              ->  CTE Scan on course_lessons cl  (cost=0.00..3.20 rows=160 width=12) (actual time=0.020..0.135 rows=160.00 loops=1)
+                    Storage: Memory  Maximum Storage: 23kB
+                    Buffers: shared hit=16
+Planning:
+  Buffers: shared hit=352
+Planning Time: 0.749 ms
+Execution Time: 277.188 ms
+=== R19 run 3 ===
+Sort  (cost=92730.08..92730.48 rows=160 width=52) (actual time=281.110..281.114 rows=160.00 loops=1)
+  Sort Key: cl.unit_no, cl.lesson_no
+  Sort Method: quicksort  Memory: 32kB
+  Buffers: shared hit=12279 read=24996
+  CTE course_lessons
+    ->  Hash Join  (cost=5.00..41.31 rows=160 width=12) (actual time=0.019..0.124 rows=160.00 loops=1)
+          Hash Cond: (l.unit_id = u.unit_id)
+          Buffers: shared hit=16
+          ->  Seq Scan on lessons l  (cost=0.00..31.60 rows=1760 width=12) (actual time=0.004..0.056 rows=1760.00 loops=1)
+                Buffers: shared hit=14
+          ->  Hash  (cost=4.75..4.75 rows=20 width=8) (actual time=0.012..0.012 rows=20.00 loops=1)
+                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                Buffers: shared hit=2
+                ->  Seq Scan on units u  (cost=0.00..4.75 rows=20 width=8) (actual time=0.004..0.009 rows=20.00 loops=1)
+                      Filter: (course_id = 1)
+                      Rows Removed by Filter: 200
+                      Buffers: shared hit=2
+  ->  Hash Right Join  (cost=92630.80..92682.91 rows=160 width=52) (actual time=281.043..281.087 rows=160.00 loops=1)
+        Hash Cond: (a.lesson_id = cl.lesson_id)
+        Buffers: shared hit=12276 read=24996
+        ->  HashAggregate  (cost=92625.60..92651.95 rows=1757 width=44) (actual time=280.898..280.925 rows=160.00 loops=1)
+              Group Key: a.lesson_id
+              Batches: 1  Memory Usage: 81kB
+              Buffers: shared hit=12260 read=24996
+              ->  Hash Join  (cost=5.20..90161.19 rows=328587 width=16) (actual time=0.020..231.064 rows=903059.00 loops=1)
+                    Hash Cond: (a.lesson_id = cl_1.lesson_id)
+                    Buffers: shared hit=12260 read=24996
+                    ->  Seq Scan on lesson_attempts a  (cost=0.00..73339.00 rows=3608300 width=16) (actual time=0.004..87.856 rows=3608300.00 loops=1)
+                          Buffers: shared hit=12260 read=24996
+                    ->  Hash  (cost=3.20..3.20 rows=160 width=4) (actual time=0.012..0.012 rows=160.00 loops=1)
+                          Buckets: 1024  Batches: 1  Memory Usage: 14kB
+                          ->  CTE Scan on course_lessons cl_1  (cost=0.00..3.20 rows=160 width=4) (actual time=0.000..0.005 rows=160.00 loops=1)
+                                Storage: Memory  Maximum Storage: 23kB
+        ->  Hash  (cost=3.20..3.20 rows=160 width=12) (actual time=0.141..0.142 rows=160.00 loops=1)
+              Buckets: 1024  Batches: 1  Memory Usage: 15kB
+              Buffers: shared hit=16
+              ->  CTE Scan on course_lessons cl  (cost=0.00..3.20 rows=160 width=12) (actual time=0.020..0.136 rows=160.00 loops=1)
+                    Storage: Memory  Maximum Storage: 23kB
+                    Buffers: shared hit=16
+Planning:
+  Buffers: shared hit=352
+Planning Time: 0.751 ms
+Execution Time: 281.165 ms
