@@ -169,3 +169,32 @@ LIMIT 25;
 * **Performance:** Regardless of whether the user is on page 1 or page 40,000, PostgreSQL jumps directly to the `$last_seen` position via B-Tree root-to-leaf traversal in $O(\log N)$ time and reads **exactly 25 tuples** (< 0.1 ms).
 
 ---
+
+## 4. Storage & Memory Analysis (Seed vs. Large)
+
+We extracted exact disk utilization figures for all 11 tables using `pg_table_size`, `pg_indexes_size`, and `pg_total_relation_size`.
+
+### 4.1 Storage Footprint Comparison Table
+
+| Table Name | Seed Rows | Large Rows | Seed Table Size | Large Table Size | Seed Index Size | Large Index Size | Large Total Footprint | Index % of Table |
+|:---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `lesson_attempts` | 188,300 | 3,608,300 | 16.0 MB | 291.2 MB | 25.3 MB | 473.2 MB | **764.4 MB** | 162.5% |
+| `daily_activity` | 189,109 | 3,626,847 | 9.9 MB | 181.0 MB | 5.4 MB | 103.5 MB | **284.5 MB** | 57.2% |
+| `learners` | 30,000 | 600,000 | 3.2 MB | 61.2 MB | 5.0 MB | 116.9 MB | **178.1 MB** | 191.0% |
+| `enrollments` | 37,500 | 750,000 | 1.9 MB | 37.4 MB | 2.0 MB | 38.7 MB | **76.1 MB** | 103.5% |
+| `league_memberships`| 28,598 | 546,036 | 2.1 MB | 40.5 MB | 1.3 MB | 24.4 MB | **64.9 MB** | 60.2% |
+| `learner_achievements`| 38,860 | 773,472 | 1.8 MB | 32.7 MB | 1.1 MB | 22.2 MB | **54.9 MB** | 67.9% |
+| `lessons` | 1,760 | 1,760 | 128 kB | 144 kB | 112 kB | 112 kB | **256 kB** | 77.8% |
+| `units` | 220 | 220 | 40 kB | 40 kB | 48 kB | 48 kB | **88 kB** | 120.0% |
+| `achievements` | 10 | 10 | 8 kB | 8 kB | 32 kB | 48 kB | **56 kB** | 600.0% |
+| `courses` | 11 | 11 | 8 kB | 8 kB | 16 kB | 32 kB | **40 kB** | 400.0% |
+| `languages` | 10 | 10 | 8 kB | 8 kB | 16 kB | 32 kB | **40 kB** | 400.0% |
+| **TOTALS** | **514,378** | **9,906,666** | **34.8 MB** | **643.0 MB** | **39.8 MB** | **779.1 MB** | **1,422.1 MB** | **121.2%** |
+
+### 4.2 Storage Findings & Memory Fitting:
+1. **Total Relation Footprint is 1.42 GB**: The data grew by **18.5×**, perfectly aligning with the 20× user scaling factor.
+2. **Buffer Cache Residency:** Modern production instances allocate 4 GB to 16 GB for PostgreSQL `shared_buffers`. Because the entire 1.42 GB database (including all indexes) fits comfortably inside RAM, read operations avoid disk I/O bottlenecks and achieve sub-millisecond latencies.
+3. **Index Efficiency:** The largest index footprint belongs to `lesson_attempts` (473 MB across 6 indexes). Partial indexes (`idx_lesson_attempts_unfinished`, `idx_daily_activity_freeze`) kept index sizes extremely lean (under 1 MB).
+
+---
+
